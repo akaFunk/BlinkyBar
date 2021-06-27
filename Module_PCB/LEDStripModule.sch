@@ -3216,7 +3216,7 @@ F 3 "" H 800 7200 50  0001 C CNN
 	1    800  7200
 	1    0    0    -1  
 $EndComp
-Text Label 3200 5600 0    50   ~ 0
+Text Label 3200 5800 0    50   ~ 0
 LED
 $Comp
 L Device:C C22
@@ -3325,4 +3325,41 @@ F 3 "~" H 7150 5850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 NoConn ~ 7150 5950
+$Comp
+L Connector:TestPoint TP1
+U 1 1 60DA3249
+P 4600 5800
+F 0 "TP1" H 4658 5918 50  0000 L CNN
+F 1 "TP" H 4658 5827 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D2.0mm" H 4800 5800 50  0001 C CNN
+F 3 "~" H 4800 5800 50  0001 C CNN
+	1    4600 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint TP2
+U 1 1 60DA37C3
+P 4900 5800
+F 0 "TP2" H 4958 5918 50  0000 L CNN
+F 1 "GND" H 4958 5827 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D2.0mm" H 5100 5800 50  0001 C CNN
+F 3 "~" H 5100 5800 50  0001 C CNN
+	1    4900 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0147
+U 1 1 60DA3BA0
+P 4900 5800
+F 0 "#PWR0147" H 4900 5550 50  0001 C CNN
+F 1 "GND" H 4905 5627 50  0000 C CNN
+F 2 "" H 4900 5800 50  0001 C CNN
+F 3 "" H 4900 5800 50  0001 C CNN
+	1    4900 5800
+	1    0    0    -1  
+$EndComp
+Text Label 4600 5800 3    50   ~ 0
+TP1
+Text Label 3200 5700 0    50   ~ 0
+TP1
 $EndSCHEMATC
