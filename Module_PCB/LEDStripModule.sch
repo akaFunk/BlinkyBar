@@ -2971,8 +2971,8 @@ F 0 "J4" H 5700 5867 50  0000 C CNN
 F 1 "DS" H 5700 5776 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_2x02_P2.54mm_Horizontal" H 5650 5650 50  0001 C CNN
 F 3 "~" H 5650 5650 50  0001 C CNN
-F 4 "Samtec" H 5650 5650 50  0001 C CNN "Manufacturer"
-F 5 "SQT-102-01-F-D-RA" H 5650 5650 50  0001 C CNN "MPN"
+F 4 "CJT(Changjiang Connectors)" H 5650 5650 50  0001 C CNN "Manufacturer"
+F 5 "A2541HWR-2x2P" H 5650 5650 50  0001 C CNN "MPN"
 	1    5650 5650
 	1    0    0    -1  
 $EndComp
@@ -2984,8 +2984,8 @@ F 0 "J5" H 5700 5317 50  0000 C CNN
 F 1 "US" H 5700 5226 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Horizontal" H 5650 5100 50  0001 C CNN
 F 3 "~" H 5650 5100 50  0001 C CNN
-F 4 "Samtec" H 5650 5100 50  0001 C CNN "Manufacturer"
-F 5 "TMM-102-01-T-D-RA" H 5650 5100 50  0001 C CNN "MPN"
+F 4 "XFCN" H 5650 5100 50  0001 C CNN "Manufacturer"
+F 5 "PZ254R-12-4P" H 5650 5100 50  0001 C CNN "MPN"
 	1    5650 5100
 	1    0    0    -1  
 $EndComp
