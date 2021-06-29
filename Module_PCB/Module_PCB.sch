@@ -3106,7 +3106,7 @@ F 3 "" H 950 1650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	950  1050 2150 1050
+	950  1050 1000 1050
 $Comp
 L Device:Battery BT1
 U 1 1 60E26D7D
@@ -3201,4 +3201,19 @@ F 5 "SD103AW" H 1900 1400 50  0001 C CNN "MPN"
 $EndComp
 Text Label 1350 1050 0    50   ~ 0
 BAT_RAW
+$Comp
+L Device:Polyfuse F1
+U 1 1 60DB9790
+P 1150 1050
+F 0 "F1" V 925 1050 50  0000 C CNN
+F 1 "Polyfuse" V 1016 1050 50  0000 C CNN
+F 2 "Fuse:Fuse_1812_4532Metric_Castellated" H 1200 850 50  0001 L CNN
+F 3 "~" H 1150 1050 50  0001 C CNN
+F 4 "BHFUSE " H 1150 1050 50  0001 C CNN "Manufacturer"
+F 5 "BSMD1812-200-30V" H 1150 1050 50  0001 C CNN "MPN"
+	1    1150 1050
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	1300 1050 2150 1050
 $EndSCHEMATC
