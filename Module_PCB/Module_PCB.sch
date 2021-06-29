@@ -2442,7 +2442,7 @@ F 3 "" H 1700 7200 50  0001 C CNN
 	1    1700 7200
 	1    0    0    -1  
 $EndComp
-Text Label 3450 6700 0    50   ~ 0
+Text Label 3200 5600 0    50   ~ 0
 TRIGI
 Text Label 5250 6300 2    50   ~ 0
 TRIGI
@@ -3216,7 +3216,7 @@ F 5 "YAGEO" H 1350 4950 50  0001 C CNN "Manufacturer"
 	1    1350 4950
 	1    0    0    -1  
 $EndComp
-Text Label 3450 7100 0    50   ~ 0
+Text Label 3200 4700 0    50   ~ 0
 ~RET_EN
 $Comp
 L power:GND #PWR0139
