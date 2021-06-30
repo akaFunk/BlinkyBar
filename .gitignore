@@ -2,3 +2,5 @@
 *.tsv
 *.xml
 *.bak
+__pycache__
+
