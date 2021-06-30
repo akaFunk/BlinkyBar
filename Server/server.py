@@ -10,7 +10,7 @@ led_settings["speed"] = 0.5
 led_settings["trigger_delay"] = 1.0
 led_settings["allow_scaling"] = True
 
-@route('/settings')
+@route('/get/settings')
 def settings():
     print("Settings requested")
     return json.dumps(led_settings, indent = 4)
@@ -73,6 +73,11 @@ def set_image():
         return json.dumps({"status:": "ok"})
     else:
         return json.dumps({"status:": "error", "msg": "No file provided"})
+
+@route('/get/image')
+def get_image():
+    return static_file("image.png", os.path.dirname(os.path.realpath(__file__)))
+
 
 @route('/')
 def index():
