@@ -1,5 +1,4 @@
-# https://docs.cherrypy.org/en/latest/tutorials.html#tutorials
-
+import logging
 import cherrypy
 import os
 from PIL import Image
@@ -9,6 +8,11 @@ import serial
 from threading import Thread
 import time
 from queue import Queue
+import datetime
+#import configparser
+
+cherrypy._cplogging.LogManager.time = lambda self : \
+     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:23]
 
 # State
 led_settings = {
@@ -19,37 +23,46 @@ led_settings = {
     "allow_scaling": True,
     "msg": ""
 }
-#led_settings["brightness"] = 0.5
-#led_settings["speed"] = 0.5
-#led_settings["trigger_delay"] = 1.0
-#led_settings["allow_scaling"] = True
-
 
 class Controller(Thread):
     def __init__(self, command_queue):
         Thread.__init__(self, daemon=True)
         self.command_queue = command_queue
         self.uploading_image = False
-        print("Hello from thread init")
+        self.height = 120 # TODO: This should come from the stick
 
     def run(self):
         while True:
             command_data = self.command_queue.get()
-            print("Got command: " + command_data["command"])
+            cherrypy.log("Got command: " + command_data["command"])
             if command_data["command"] == "upload_image":
                 self.uploading_image = True
                 for k in range(10):
-                    print(f"Uploading image... {k+1}/10")
+                    cherrypy.log(f"Uploading image... {k+1}/10")
                     time.sleep(1)
                     if not self.uploading_image:
-                        print("Cancelling upload")
+                        cherrypy.log("Cancelling upload")
                         break
             elif command_data["command"] == "set_speed":
-                print("Setting speed...")
+                cherrypy.log("Setting speed...")
             elif command_data["command"] == "trigger":
-                print(f"Trigger in {command_data['delay']} seconds")
+                cherrypy.log(f"Trigger in {command_data['delay']} seconds")
             elif command_data["command"] == "set_speed":
-                print(f"Set speed to {command_data['speed']} m/s")
+                cherrypy.log(f"Set speed to {command_data['speed']} m/s")
+            elif command_data["command"] == "update_image":
+                self.image = command_data["image"]
+                self.image.save("image.png")
+                width = round(self.height*self.image.size[0]/self.image.size[1])
+                image_scaled = self.image.resize((width, self.height))
+                image_scaled.save("image_scaled.png")
+                cherrypy.log("Image resized and saved")
+
+    def update_image(self, new_image):
+        # Add the command to the queue
+        self.command_queue.put({
+            "command": "update_image",
+            "image": new_image
+        })
 
     def upload_image(self, image_data):
         # Cancel a currently running upload
@@ -79,14 +92,7 @@ class WebServer(object):
         self.command_queue = Queue()
         self.controller = Controller(self.command_queue)
         self.controller.start()
-        print("Web server started")
-        #time.sleep(3)
-        #print("Adding image...")
-        #self.controller.upload_image("image data")
-        #time.sleep(3)
-        #print("Adding another image...")
-        #self.controller.upload_image("anotherimage data")
-        #time.sleep(12)
+        cherrypy.log("LEDStrip server started")
 
     # Load index.html
     @cherrypy.expose
@@ -160,17 +166,13 @@ class WebServer(object):
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
     def set_image(self, image_obj):
-        size = 0
-        image_data = b''
-        while True:
-            data = image_obj.file.read(8192)
-            if not data:
-                break
-            image_data += data
-            size += len(data)
+        cherrypy.log("Got a new image")
+        image_data = image_obj.file.read()
 
-        image = Image.open(io.BytesIO(image_data))
-        image.save("image.png")
+        cherrypy.log("set_image data read")
+        new_image = Image.open(io.BytesIO(image_data))
+        self.controller.update_image(new_image)
+        cherrypy.log("set_image processed")
         return ujson.dumps({"status": "ok"})
     
     # Upload an image as png/jpg/gif/... in post data
@@ -181,8 +183,13 @@ class WebServer(object):
     
 
 if __name__ == '__main__':
-    static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static')
+    #config = configparser.RawConfigParser()
+    #config.read("ledstrip.conf")
+    #print(config.get("general", "test"))
 
+    cherrypy.log("Started LEDStrip Server")
+
+    static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static')
     conf = {
         '/': {
             'tools.staticdir.root': static_dir,
@@ -190,5 +197,4 @@ if __name__ == '__main__':
             'tools.staticdir.dir': ''
         }
     }
-
     cherrypy.quickstart(WebServer(), '/', conf)
