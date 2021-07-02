@@ -163,6 +163,11 @@ class WebServer(object):
         led_settings.update(dict({"status:": "ok", "msg": ""}))
         return ujson.dumps(led_settings)
 
+    @cherrypy.expose
+    def status(self):
+        # TODO: Implement actual status
+        return ujson.dumps({"progress": 0.7, "msg": "Uploading to modules"})
+
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
     def set_image(self, image_obj):

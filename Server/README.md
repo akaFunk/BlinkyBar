@@ -30,6 +30,16 @@ All queries will return a JSON string with the following structure:
 
 The status variable is either "ok" or "error". For the latter one, the "msg" parameter contains an error message, which will be shown to the user.
 
+### status
+The status endpoint is a getter only. It returns a JSON string with the following structure:
+```json
+{
+    "progress": 0.7,
+    "msg": "Converting image"
+}
+```
+The progress is a float value between 0 and 1 and can be used to display a loading bar. The message in "msg" describes the current process, like "Converting image", "Uploading to modules", or similar.
+
 
 ### set_image
 Upload an image to the LEDStrip. The image has to be attached in the POST as a multipart/form-data object in the variable image_obj. A new image will trigger an image upload to the modules.
