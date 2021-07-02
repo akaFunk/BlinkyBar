@@ -34,11 +34,13 @@ The status variable is either "ok" or "error". For the latter one, the "msg" par
 The status endpoint is a getter only. It returns a JSON string with the following structure:
 ```json
 {
+    "status": "processing",
     "progress": 0.7,
-    "msg": "Converting image"
+    "msg": "Uploading to modules"
 }
 ```
-The progress is a float value between 0 and 1 and can be used to display a loading bar. A value of 1 indicates a completely uploaded image and that the LEDStrip is ready to be triggered. A value of 0 indicates that no image is on the LEDStrip. The message in "msg" describes the current process, like "Converting image", "Uploading to modules", or similar.
+"status" may be any of "no image", "processing", or "ready". "no image" means that no image is available to be triggered, "processing" means that an uploaded image is currently being processed, and "ready" means that the uploaded image is ready to be triggered.
+The "progress" is a float value between 0 and 1, valid while the status is "processing". It has a value between 0 and 1 and can be used to display a loading bar. The message in "msg" describes the current processing state, like "Converting image", "Uploading to modules", or similar.
 
 
 ### set_image
