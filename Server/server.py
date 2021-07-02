@@ -11,11 +11,18 @@ import time
 from queue import Queue
 
 # State
-led_settings = dict()
-led_settings["brightness"] = 0.5
-led_settings["speed"] = 0.5
-led_settings["trigger_delay"] = 1.0
-led_settings["allow_scaling"] = True
+led_settings = {
+    "status": "ok",
+    "brightness": 0.5,
+    "speed": 0.5,
+    "trigger_delay": 1.0,
+    "allow_scaling": True,
+    "msg": ""
+}
+#led_settings["brightness"] = 0.5
+#led_settings["speed"] = 0.5
+#led_settings["trigger_delay"] = 1.0
+#led_settings["allow_scaling"] = True
 
 
 class Controller(Thread):
@@ -91,71 +98,64 @@ class WebServer(object):
     def get_settings(self):
         return ujson.dumps(led_settings, indent = 4)
     
-    # Settings - brightness
     @cherrypy.expose
-    def brightness(self, value=None):
-        if value is not None:
+    def settings(self, speed=None, brightness=None, trigger_delay=None, allow_scaling=None):
+        # Check all the variables first
+        if speed is not None:
             try:
-                led_settings["brightness"] = float(value)
+                speed = float(speed)
             except ValueError:
-                return ujson.dumps({"status:": "error", "msg": "Value not a float"})
-        
-        # Re-generate the image
-
-        # Upload the image
-
-        return ujson.dumps({
-            "status": "ok",
-            "brightness": str(led_settings["brightness"])
-        })
-
-    # Settings - speed
-    @cherrypy.expose
-    def speed(self, value=None):
-        if value is not None:
+                led_settings.update(dict({"status:": "error", "msg": "Speed is not a float"}))
+                return ujson.dumps(led_settings)
+            if speed < 0.1 or speed > 100:
+                led_settings.update(dict({"status:": "error", "msg": "Speed is out of range"}))
+                return ujson.dumps(led_settings)
+        if brightness is not None:
             try:
-                value_float = round(float(value), 2)
-                if value_float < 0.1 or value_float > 100:
-                    return ujson.dumps({"status:": "error", "msg": "Value out of range"})
-                led_settings["speed"] = value_float
+                brightness = float(brightness)
             except ValueError:
-                return ujson.dumps({"status:": "error", "msg": "Value not a float"})
-        self.controller.set_speed(led_settings["speed"])
-        return ujson.dumps({
-            "status": "ok",
-            "speed": str(led_settings["speed"])
-        })
-
-    # Settings - trigger_delay
-    @cherrypy.expose
-    def trigger_delay(self, value=None):
-        if value is not None:
+                led_settings.update(dict({"status:": "error", "msg": "Brightness is not a float"}))
+                return ujson.dumps(led_settings)
+            if brightness < 0.1 or brightness > 1.0:
+                led_settings.update(dict({"status:": "error", "msg": "Brightness is out of range"}))
+                return ujson.dumps(led_settings)
+        if trigger_delay is not None:
             try:
-                led_settings["trigger_delay"] = float(value)
+                trigger_delay = float(trigger_delay)
             except ValueError:
-                return ujson.dumps({"status:": "error", "msg": "Value not a float"})
-        return ujson.dumps({
-            "status": "ok",
-            "trigger_delay": str(led_settings["trigger_delay"])
-        })
-
-    # Settings - allow_scaling
-    @cherrypy.expose
-    def allow_scaling(self, value=None):
-        if value is not None:
-            if value.lower() in ['true', '1',]:
-                led_settings["allow_scaling"] = True
-            elif value.lower() in ['false', '0',]:
-                led_settings["allow_scaling"] = False
+                led_settings.update(dict({"status:": "error", "msg": "Trigger delay is not a float"}))
+                return ujson.dumps(led_settings)
+            if trigger_delay < 0 or trigger_delay > 1000.0:
+                led_settings.update(dict({"status:": "error", "msg": "Trigger delay is out of range"}))
+                return ujson.dumps(led_settings)
+        if allow_scaling is not None:
+            if allow_scaling.lower() in ['true', '1',]:
+                allow_scaling = True
+            elif allow_scaling.lower() in ['false', '0',]:
+                allow_scaling = False
             else:
-                return ujson.dumps({
-                    "status:": "error",
-                    "msg": "Value not a bool"
-                })
-        return ujson.dumps({
-            "status": "ok",
-            "allow_scaling": str(led_settings["allow_scaling"])
-        })
+                led_settings.update(dict({"status:": "error", "msg": "Allow scaling delay is out of range"}))
+                return ujson.dumps(led_settings)
+
+        # All values seem to be ok, update the state
+        if speed is not None:
+            led_settings["speed"] = speed
+            # Trigger an update to the modules
+            self.controller.set_speed(led_settings["speed"])
+        
+        if brightness is not None:
+            led_settings["brightness"] = brightness
+            # TODO: Trigger an image update
+        
+        if trigger_delay is not None:
+            led_settings["trigger_delay"] = trigger_delay
+        
+        if allow_scaling is not None:
+            led_settings["allow_scaling"] = allow_scaling
+            # TODO: Trigger an image update
+
+        led_settings.update(dict({"status:": "ok", "msg": ""}))
+        return ujson.dumps(led_settings)
 
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
@@ -192,15 +192,3 @@ if __name__ == '__main__':
     }
 
     cherrypy.quickstart(WebServer(), '/', conf)
-
-
-
-#        # Get post data
-#        cl = int(cherrypy.request.headers['Content-Length'])
-#        rawbody = cherrypy.request.body.read(int(cl))
-#        print("Data: \"" +  rawbody.decode("utf-8") + "\"")
-#        print("Length: " + str(cl))
-#        if cl == 0:
-#            return "here are the settings..."
-#        else:
-#            return "Done"
