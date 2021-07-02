@@ -38,7 +38,7 @@ The status endpoint is a getter only. It returns a JSON string with the followin
     "msg": "Converting image"
 }
 ```
-The progress is a float value between 0 and 1 and can be used to display a loading bar. The message in "msg" describes the current process, like "Converting image", "Uploading to modules", or similar.
+The progress is a float value between 0 and 1 and can be used to display a loading bar. A value of 1 indicates a completely uploaded image and that the LEDStrip is ready to be triggered. A value of 0 indicates that no image is on the LEDStrip. The message in "msg" describes the current process, like "Converting image", "Uploading to modules", or similar.
 
 
 ### set_image
