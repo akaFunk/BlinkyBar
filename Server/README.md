@@ -54,6 +54,11 @@ Returns the currently stored image. The server internally converts the image to 
 
 Here is an example: http://192.168.138.1/get_image
 
+### get_image_scaled
+Returns the scaled version of the image, which is currently used for the LEDs. The image is of type PNG.
+
+Here is an example: http://192.168.138.1/get_image_scaled
+
 ## Website
 The website is delivered by the server to the webbrowser and provides the GUI for the LEDStrip. The application is based on [Vue.js](https://vuejs.org/), version 3.
 
