@@ -1,9 +1,37 @@
 <html>
     <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <body>
         <form action="/set_image" method="post" enctype="multipart/form-data">
             <input type="file" name="image_obj">
             <input type="submit">
         </form>
+        <button onclick="onButtonSpeed(0.1)">Speed up</button>
+        <div id="speed">1.0</div>
+        <button onclick="onButtonSpeed(-0.1)">Speed down</button>
     </body>
+
+    <script>
+        var speed = 1.0
+
+        function onButtonSpeed(increment) {
+            new_speed = speed + increment
+            console.log(speed)
+            $.get("speed", {"value": new_speed}, function(data, status) {
+                console.log("data: " + data)
+                console.log("status: " + status)
+                data_obj = JSON.parse(data); 
+                if(status !== "success") {
+                    console.log("got error")
+                    return
+                }
+                if(data_obj["status"] != "ok") {
+                    console.log("got error message: " + data_obj["msg"])
+                    return
+                }
+                speed = +(data_obj["speed"])
+                document.getElementById("speed").textContent = +(speed).toFixed(2)
+            })
+        }
+    </script>
 </html>

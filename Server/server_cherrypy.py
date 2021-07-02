@@ -114,7 +114,10 @@ class WebServer(object):
     def speed(self, value=None):
         if value is not None:
             try:
-                led_settings["speed"] = float(value)
+                value_float = round(float(value), 2)
+                if value_float < 0.1 or value_float > 100:
+                    return ujson.dumps({"status:": "error", "msg": "Value out of range"})
+                led_settings["speed"] = value_float
             except ValueError:
                 return ujson.dumps({"status:": "error", "msg": "Value not a float"})
         self.controller.set_speed(led_settings["speed"])
