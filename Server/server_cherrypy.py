@@ -27,9 +27,9 @@ class Controller(Thread):
 
     def run(self):
         while True:
-            data = self.command_queue.get()
-            print("Got command: " + data["command"])
-            if data["command"] == "upload_image":
+            command_data = self.command_queue.get()
+            print("Got command: " + command_data["command"])
+            if command_data["command"] == "upload_image":
                 self.uploading_image = True
                 for k in range(10):
                     print(f"Uploading image... {k+1}/10")
@@ -37,12 +37,12 @@ class Controller(Thread):
                     if not self.uploading_image:
                         print("Cancelling upload")
                         break
-            elif data["command"] == "set_speed":
+            elif command_data["command"] == "set_speed":
                 print("Setting speed...")
-            elif data["command"] == "trigger":
-                print(f"Trigger in {data['delay']} seconds")
-            elif data["command"] == "set_speed":
-                print(f"Set speed to {data['speed']} m/s")
+            elif command_data["command"] == "trigger":
+                print(f"Trigger in {command_data['delay']} seconds")
+            elif command_data["command"] == "set_speed":
+                print(f"Set speed to {command_data['speed']} m/s")
 
     def upload_image(self, image_data):
         # Cancel a currently running upload
@@ -73,13 +73,13 @@ class WebServer(object):
         self.controller = Controller(self.command_queue)
         self.controller.start()
         print("Web server started")
-        time.sleep(3)
-        print("Adding image...")
-        self.controller.upload_image("image data")
-        time.sleep(3)
-        print("Adding another image...")
-        self.controller.upload_image("anotherimage data")
-        time.sleep(12)
+        #time.sleep(3)
+        #print("Adding image...")
+        #self.controller.upload_image("image data")
+        #time.sleep(3)
+        #print("Adding another image...")
+        #self.controller.upload_image("anotherimage data")
+        #time.sleep(12)
 
     # Load index.html
     @cherrypy.expose
@@ -99,6 +99,11 @@ class WebServer(object):
                 led_settings["brightness"] = float(value)
             except ValueError:
                 return ujson.dumps({"status:": "error", "msg": "Value not a float"})
+        
+        # Re-generate the image
+
+        # Upload the image
+
         return ujson.dumps({
             "status": "ok",
             "brightness": str(led_settings["brightness"])
@@ -112,6 +117,7 @@ class WebServer(object):
                 led_settings["speed"] = float(value)
             except ValueError:
                 return ujson.dumps({"status:": "error", "msg": "Value not a float"})
+        self.controller.set_speed(led_settings["speed"])
         return ujson.dumps({
             "status": "ok",
             "speed": str(led_settings["speed"])
@@ -150,15 +156,19 @@ class WebServer(object):
 
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
-    def set_image(self):
-        # Get post data
-        cl = cherrypy.request.headers['Content-Length']
-        rawbody = cherrypy.request.body.read(int(cl))
-        #print(rawbody)
-        #return "Done"
-        image = Image.open(io.BytesIO(rawbody))
+    def set_image(self, image_obj):
+        size = 0
+        image_data = b''
+        while True:
+            data = image_obj.file.read(8192)
+            if not data:
+                break
+            image_data += data
+            size += len(data)
+
+        image = Image.open(io.BytesIO(image_data))
         image.save("image.png")
-        image.show()
+        return ujson.dumps({"status": "ok"})
     
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
