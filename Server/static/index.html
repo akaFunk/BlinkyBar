@@ -17,7 +17,7 @@
         function onButtonSpeed(increment) {
             new_speed = speed + increment
             console.log(speed)
-            $.get("speed", {"value": new_speed}, function(data, status) {
+            $.get("settings", {"speed": new_speed}, function(data, status) {
                 console.log("data: " + data)
                 console.log("status: " + status)
                 data_obj = JSON.parse(data); 
