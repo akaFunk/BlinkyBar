@@ -3,4 +3,4 @@
 *.xml
 *.bak
 __pycache__
-
+.vscode
