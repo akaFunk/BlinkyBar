@@ -92,7 +92,7 @@ class WebServer(object):
         self.command_queue = Queue()
         self.controller = Controller(self.command_queue)
         self.controller.start()
-        cherrypy.log("LEDStrip server started")
+        cherrypy.log("BlinkyBar server started")
 
     # Load index.html
     @cherrypy.expose
@@ -189,10 +189,10 @@ class WebServer(object):
 
 if __name__ == '__main__':
     #config = configparser.RawConfigParser()
-    #config.read("ledstrip.conf")
+    #config.read("BlinkyBar.conf")
     #print(config.get("general", "test"))
 
-    cherrypy.log("Started LEDStrip Server")
+    cherrypy.log("Started BlinkyBar Server")
 
     static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static')
     conf = {
