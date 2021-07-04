@@ -24,11 +24,12 @@ All queries will return a JSON string with the following structure:
     "speed": 2.0,
     "trigger_delay": 1.0,
     "allow_scaling": true,
+    "image_hash": "b3a81f7e1c315001ca75e270eb88d8a9db405ebd6df1c046d1fa4978c0a6779b",
     "msg": ""
 }
 ```
 
-The status variable is either "ok" or "error". For the latter one, the "msg" parameter contains an error message, which will be shown to the user.
+The status variable is either "ok" or "error". For the latter one, the "msg" parameter contains an error message, which will be shown to the user. The "image_hash" cannot be set, only read. It contains the hash of the current scaled image, which can be used by the frontend to figure out if the image has changed since the last request. If that is the case, the frontend can ask for the new image, only if it is required.
 
 ### status
 The status endpoint is a getter only. It returns a JSON string with the following structure:
