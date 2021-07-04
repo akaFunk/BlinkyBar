@@ -19,30 +19,30 @@ http://192.168.138.1/settings?speed=1.0&allow_scaling=true
 All queries will return a JSON string with the following structure:
 ```json
 {
-    "status": "ok",
+    "success": true,
+    "error_msg": "",
     "brightness": 0.5,
-    "speed": 2.0,
+    "speed": 0.5,
     "trigger_delay": 1.0,
     "allow_scaling": true,
-    "image_hash": "b3a81f7e1c315001ca75e270eb88d8a9db405ebd6df1c046d1fa4978c0a6779b",
-    "msg": ""
+    "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "progress_status": "noimage",
+    "prograss_value": 0.0,
+    "progress_msg": ""
 }
 ```
 
-The status variable is either "ok" or "error". For the latter one, the "msg" parameter contains an error message, which will be shown to the user. The "image_hash" cannot be set, only read. It contains the hash of the current scaled image, which can be used by the frontend to figure out if the image has changed since the last request. If that is the case, the frontend can ask for the new image, only if it is required.
+If the "success" variable is false it indicates an error in the query. In that case the "error_msg" holds an error message.
 
-### status
-The status endpoint is a getter only. It returns a JSON string with the following structure:
-```json
-{
-    "status": "processing",
-    "progress": 0.7,
-    "msg": "Uploading to modules"
-}
-```
-The "status" may be any of "no image", "processing", or "ready". "no image" means that no image is available to be triggered, "processing" means that an uploaded image is currently being processed, and "ready" means that the uploaded image is ready to be triggered.
-The "progress" is a float value between 0 and 1. It can be used to display a loading bar. The message in "msg" describes the current processing state, like "Converting image", "Uploading to modules", or similar. Both, "progress" and "msg" are only valid when "status" is "processing".
+Additionally the structure holds a few variables, indicating the state of the system:
 
+- **image_hash** contains the hash of the current scaled image, which can be used by the frontend to figure out if the image has changed since the last request. If that is the case, the frontend can ask for the new image.
+
+- **progress_status** may be any of "noimage", "processing", "ready", or "playing". "noimage" means that no image is available to be triggered, "processing" means that an uploaded image is currently being processed, "ready" means that the uploaded image is ready to be triggered, and "playing" means that the image is currently beeing played back. In the last case, a trigger will stop the playback.
+
+- **prograss_value** is a float value between 0 and 1. It can be used to display a loading bar while the an image is beeing processed or played. It is only valid if "progress_status" is either "processing" or "playing".
+
+- **progress_msg** contains a more detailed message about what is currently happening, especially during the image processing. It is only valid if "progress_status" is either "processing" or "playing".
 
 ### set_image
 Upload an image to the BlinkyBar. The image has to be attached in the POST as a multipart/form-data object in the variable image_obj. A new image will trigger an image upload to the modules.
@@ -59,6 +59,9 @@ Here is an example: http://192.168.138.1/get_image
 Returns the scaled version of the image, which is currently used for the LEDs. The image is of type PNG.
 
 Here is an example: http://192.168.138.1/get_image_scaled
+
+### Trigger
+Triggers the image playback. If the playback is already running, it stops it. Can only be called if "progress_status" is "ready" or "playing".
 
 ## Website
 The website is delivered by the server to the webbrowser and provides the GUI for the BlinkyBar. The application is based on [Vue.js](https://vuejs.org/), version 3.

@@ -16,22 +16,31 @@ cherrypy._cplogging.LogManager.time = lambda self : \
      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:23]
 
 # State
-led_settings = {
-    "status": "ok",
-    "brightness": 0.5,
-    "speed": 0.5,
-    "trigger_delay": 1.0,
-    "allow_scaling": True,
-    "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
-    "msg": ""
-}
+
 
 class Controller(Thread):
     def __init__(self, command_queue):
         Thread.__init__(self, daemon=True)
         self.command_queue = command_queue
         self.uploading_image = False
+        self.image = Image.open("image.png")
+
         self.height = 120 # TODO: This should come from the stick
+
+        # TODO: After getting the size of the stick, the scaled image should be calculated
+
+        self.led_settings = {
+            "success": True,
+            "error_msg": "",
+            "brightness": 1.0,
+            "speed": 2.0,
+            "trigger_delay": 1.0,
+            "allow_scaling": True,
+            "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+            "progress_status": "noimage",
+            "prograss_value": 0.0,
+            "progress_msg": ""
+        }
 
     def run(self):
         while True:
@@ -46,23 +55,31 @@ class Controller(Thread):
                         cherrypy.log("Cancelling upload")
                         break
             elif command_data["command"] == "set_speed":
-                cherrypy.log("Setting speed...")
+                # TODO: Send new speed value to microcontroller
+                cherrypy.log(f"Set speed to {self.led_settings['speed']} m/s")
+            elif command_data["command"] == "set_brightness":
+                # TODO: Send new speed value to microcontroller
+                cherrypy.log(f"Set brightness to {self.led_settings['brightness']*100} %")
             elif command_data["command"] == "trigger":
-                cherrypy.log(f"Trigger in {command_data['delay']} seconds")
-            elif command_data["command"] == "set_speed":
-                cherrypy.log(f"Set speed to {command_data['speed']} m/s")
-            elif command_data["command"] == "update_image":
-                cherrypy.log("Processing new image")
-
+                delay = self.led_settings['trigger_delay']
+                cherrypy.log(f"Got trigger command, will spleep {delay} s")
+                if delay != 0.0:
+                    time.sleep(delay)
+                # TODO: Send trigger to microcontroller
+                cherrypy.log(f"Triggered")
+            elif command_data["command"] == "save_image":
                 # Save new original image as png
                 # The compression level is chosen fairly low to speed things up
                 self.image.save("image.png", compress_level=1)
                 cherrypy.log("Saved original image")
+            elif command_data["command"] == "update_image":
+                cherrypy.log("Processing new image")
 
                 # Apply brightness correction .filter?
                 enhancer = ImageEnhance.Brightness(self.image)
-                self.image = enhancer.enhance(led_settings["brightness"])
-                cherrypy.log(f"Applied brightness of {led_settings['brightness']*100}%")
+                cherrypy.log(f"Brightness: {self.led_settings['brightness']}")
+                self.image = enhancer.enhance(self.led_settings["brightness"])
+                cherrypy.log(f"Applied brightness of {self.led_settings['brightness']*100}%")
 
                 # TODO: Crop image if required
 
@@ -78,40 +95,52 @@ class Controller(Thread):
 
                 # Calculate the hash of the scaled image
                 image_bytes = self.image.tobytes()
-                led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
+                self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
                 cherrypy.log("Updated scaled image hash")
 
     def new_image(self, new_image):
         # Save the new image
         self.image = new_image
+        # Save image to filesystem - asynchronously
+        self.command_queue.put({"command": "save_image"})
         # Trigger an image update and uplload
         self.update_image()
 
     def update_image(self):
-        # Add the command to the queue
+        # Update the scaled image - asynchronously
         self.command_queue.put({"command": "update_image"})
         # Trigger an image upload
         self.upload_image()
 
     def upload_image(self):
         # Cancel a currently running upload
-        # TODO: This method is not perfect, if there are a lot of upload commands in a row
+        # TODO: This method is not perfect, if there are a lot of upload commands in a row it may happen that the image is uploaded multiple times
         if self.uploading_image:
             self.uploading_image = False
-        # Add the image upload to the command queue
+        # Add the image upload to the command queue - asynchronously
         self.command_queue.put({"command": "upload_image"})
 
     def set_speed(self, speed):
-        self.command_queue.put({
-            "command": "set_speed",
-            "speed": speed
-        })
+        self.led_settings["speed"] = speed
+        self.command_queue.put({"command": "set_speed"})
+
+    def set_brightness(self, brightness):
+        self.led_settings["brightness"] = brightness
+        self.command_queue.put({"command": "set_brightness"})
+        # Update the image
+        self.update_image()
+
+    def set_trigger_delay(self, trigger_delay):
+        self.led_settings["trigger_delay"] = trigger_delay
+        cherrypy.log(f"Set trigger delay to {self.led_settings['trigger_delay']} s")
+    
+    def set_allow_scaling(self, allow_scaling):
+        self.led_settings["allow_scaling"] = allow_scaling
+        # Update the image
+        self.update_image()
     
     def trigger(self, delay):
-        self.command_queue.put({
-            "command": "trigger",
-            "delay": delay
-        })
+        self.command_queue.put({"command": "trigger"})
 
 
 class WebServer(object):
@@ -125,75 +154,67 @@ class WebServer(object):
     @cherrypy.expose
     def index(self):
         return open(os.path.join(static_dir, "index.html"))
-
-    # Get settings object
-    @cherrypy.expose
-    def get_settings(self):
-        return ujson.dumps(led_settings, indent = 4)
     
     @cherrypy.expose
     def settings(self, speed=None, brightness=None, trigger_delay=None, allow_scaling=None):
+        # Create a copy of the current settings dict
+        retval = dict(self.controller.led_settings)
+        retval.update(dict({"success:": False, "error_msg": ""}))
+
         # Check all the variables first
         if speed is not None:
             try:
                 speed = float(speed)
             except ValueError:
-                led_settings.update(dict({"status:": "error", "msg": "Speed is not a float"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "Speed is not a float"}))
+                return ujson.dumps(retval, indent=4)
             if speed < 0.1 or speed > 100:
-                led_settings.update(dict({"status:": "error", "msg": "Speed is out of range"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "Speed is out of range"}))
+                return ujson.dumps(retval, indent=4)
         if brightness is not None:
             try:
                 brightness = float(brightness)
             except ValueError:
-                led_settings.update(dict({"status:": "error", "msg": "Brightness is not a float"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "Brightness is not a float"}))
+                return ujson.dumps(retval, indent=4)
             if brightness < 0.1 or brightness > 1.0:
-                led_settings.update(dict({"status:": "error", "msg": "Brightness is out of range"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "Brightness is out of range"}))
+                return ujson.dumps(retval, indent=4)
         if trigger_delay is not None:
             try:
                 trigger_delay = float(trigger_delay)
             except ValueError:
-                led_settings.update(dict({"status:": "error", "msg": "Trigger delay is not a float"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "Trigger delay is not a float"}))
+                return ujson.dumps(retval, indent=4)
             if trigger_delay < 0 or trigger_delay > 1000.0:
-                led_settings.update(dict({"status:": "error", "msg": "Trigger delay is out of range"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "Trigger delay is out of range"}))
+                return ujson.dumps(retval, indent=4)
         if allow_scaling is not None:
             if allow_scaling.lower() in ['true', '1',]:
                 allow_scaling = True
             elif allow_scaling.lower() in ['false', '0',]:
                 allow_scaling = False
             else:
-                led_settings.update(dict({"status:": "error", "msg": "Allow scaling delay is out of range"}))
-                return ujson.dumps(led_settings)
+                retval.update(dict({"error_msg": "allow_scaling is out of range"}))
+                return ujson.dumps(retval, indent=4)
 
         # All values seem to be ok, update the state
         if speed is not None:
-            led_settings["speed"] = speed
-            # Trigger an update to the modules
-            self.controller.set_speed(led_settings["speed"])
+            self.controller.set_speed(speed)
         
         if brightness is not None:
-            led_settings["brightness"] = brightness
-            # TODO: Trigger an image update
+            self.controller.set_brightness(brightness)
         
         if trigger_delay is not None:
-            led_settings["trigger_delay"] = trigger_delay
+            self.controller.set_trigger_delay(trigger_delay)
         
         if allow_scaling is not None:
-            led_settings["allow_scaling"] = allow_scaling
-            # TODO: Trigger an image update
+            self.controller.set_allow_scaling(allow_scaling)
 
-        led_settings.update(dict({"status:": "ok", "msg": ""}))
-        return ujson.dumps(led_settings)
-
-    @cherrypy.expose
-    def status(self):
-        # TODO: Implement actual status
-        return ujson.dumps({"progress": 0.7, "msg": "Uploading to modules"})
+        # Get the current settings and return them
+        retval = dict(self.controller.led_settings)
+        retval.update(dict({"success:": True, "error_msg": ""}))
+        return ujson.dumps(retval, indent=4)
 
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
@@ -205,7 +226,7 @@ class WebServer(object):
         new_image = Image.open(io.BytesIO(image_data))
         self.controller.new_image(new_image)
         cherrypy.log("set_image processed")
-        return ujson.dumps({"status": "ok"})
+        return ujson.dumps({"success": True})
     
     # Download the full image
     @cherrypy.expose
@@ -219,6 +240,9 @@ class WebServer(object):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image_scaled.png")
         return cherrypy.lib.static.serve_file(path, "image/png", "image_scaled.png")
     
+    @cherrypy.expose
+    def trigger(self):
+        return ujson.dumps({"success": True})
 
 if __name__ == '__main__':
     #config = configparser.RawConfigParser()
