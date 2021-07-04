@@ -1,7 +1,7 @@
 import logging
 import cherrypy
 import os
-from PIL import Image
+from PIL import Image, ImageEnhance
 import ujson
 import io
 import serial
@@ -9,6 +9,7 @@ from threading import Thread
 import time
 from queue import Queue
 import datetime
+import hashlib
 #import configparser
 
 cherrypy._cplogging.LogManager.time = lambda self : \
@@ -21,6 +22,7 @@ led_settings = {
     "speed": 0.5,
     "trigger_delay": 1.0,
     "allow_scaling": True,
+    "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
     "msg": ""
 }
 
@@ -50,12 +52,33 @@ class Controller(Thread):
             elif command_data["command"] == "set_speed":
                 cherrypy.log(f"Set speed to {command_data['speed']} m/s")
             elif command_data["command"] == "update_image":
+                cherrypy.log("Processing new image")
+
+                # Save new original image as png
                 self.image = command_data["image"]
                 self.image.save("image.png")
+                cherrypy.log("Saved original image")
+
+                # Apply brightness correction .filter?
+                enhancer = ImageEnhance.Brightness(self.image)
+                self.image = enhancer.enhance(led_settings["brightness"])
+                cherrypy.log(f"Applied brightness of {led_settings['brightness']*100}%")
+
+                # TODO: Crop image if required
+
+                # Scale image
+                # TODO: Only if it has to be rescaled...
                 width = round(self.height*self.image.size[0]/self.image.size[1])
                 image_scaled = self.image.resize((width, self.height))
                 image_scaled.save("image_scaled.png")
                 cherrypy.log("Image resized and saved")
+
+                # Calculate the hash of the scaled image - tobytes, getdata my be alternative ways to not access the disc
+                with open("image_scaled.png", "rb") as f:
+                    bytes = f.read()
+                    led_settings["image_hash"] = hashlib.sha256(bytes).hexdigest()
+                cherrypy.log("Updated scaled image hash")
+
 
     def update_image(self, new_image):
         # Add the command to the queue
@@ -180,11 +203,17 @@ class WebServer(object):
         cherrypy.log("set_image processed")
         return ujson.dumps({"status": "ok"})
     
-    # Upload an image as png/jpg/gif/... in post data
+    # Download the full image
     @cherrypy.expose
     def get_image(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image.png")
         return cherrypy.lib.static.serve_file(path, "image/png", "image.png")
+    
+    # Download the scaled image
+    @cherrypy.expose
+    def get_image_scaled(self):
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image_scaled.png")
+        return cherrypy.lib.static.serve_file(path, "image/png", "image_scaled.png")
     
 
 if __name__ == '__main__':
