@@ -1,8 +1,8 @@
 <template>
   <div>
     <h3>{{ caption }}</h3>
-    <div class="slidercontainer">
-      <div class="sliderbox">
+    <div class="slider-container">
+      <div class="slider-box">
         <vue-slider
             v-model="value"
             :min="min"
@@ -11,7 +11,7 @@
             v-bind="slider_options"
         />
       </div>
-      <div class="slidervalue">
+      <div class="slider-value">
         <input :value="value" type="number" :min="min" :max="max" :step="interval"
                @input="validateInput($event.target.value)" :key="inp_key"/>
         {{ unit }}
@@ -105,16 +105,16 @@ export default {
 </script>
 
 <style scoped>
-.slidercontainer {
+.slider-container {
   display: flex;
   flex-direction: row;
 }
 
-.sliderbox {
+.slider-box {
   width: 75%;
 }
 
-.slidervalue {
+.slider-value {
   font-weight: bold;
   width: auto;
   margin-left: 3%;
@@ -123,7 +123,7 @@ export default {
   vertical-align: middle;
 }
 
-.slidervalue input {
+.slider-value input {
   font-size: inherit;
   border: none;
   width: 2em;
