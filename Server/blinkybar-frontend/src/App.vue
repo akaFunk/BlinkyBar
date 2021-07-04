@@ -1,0 +1,36 @@
+<template>
+  <div class="app">
+    <h1>BlinkyBar Settings</h1>
+    <slider-input caption="Speed" min="0.1" max="10" :interval="0.1" unit="m/s"/>
+    <slider-input caption="Brightness" min="1" max="100" :interval="1" unit="%"/>
+    <slider-input caption="Trigger delay" min="1" max="60" :interval="1" unit="s"/>
+  </div>
+</template>
+
+<script>
+import SliderInput from "./components/SliderInput";
+
+export default {
+  name: 'App',
+  components: {
+    SliderInput
+  },
+  data: function () {
+    return {
+    }
+  }
+}
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: left;
+  color: #2c3e50;
+  margin-top: 60px;
+  width: 90vw;
+  margin-left: 5vw;
+}
+</style>
