@@ -55,8 +55,8 @@ class Controller(Thread):
                 cherrypy.log("Processing new image")
 
                 # Save new original image as png
-                self.image = command_data["image"]
-                self.image.save("image.png")
+                # The compression level is chosen fairly low to speed things up
+                self.image.save("image.png", compress_level=1)
                 cherrypy.log("Saved original image")
 
                 # Apply brightness correction .filter?
@@ -70,32 +70,36 @@ class Controller(Thread):
                 # TODO: Only if it has to be rescaled...
                 width = round(self.height*self.image.size[0]/self.image.size[1])
                 image_scaled = self.image.resize((width, self.height))
-                image_scaled.save("image_scaled.png")
-                cherrypy.log("Image resized and saved")
+                cherrypy.log(f"Image resized to {width}x{self.height}")
 
-                # Calculate the hash of the scaled image - tobytes, getdata my be alternative ways to not access the disc
-                with open("image_scaled.png", "rb") as f:
-                    bytes = f.read()
-                    led_settings["image_hash"] = hashlib.sha256(bytes).hexdigest()
+                # Save scaled image
+                image_scaled.save("image_scaled.png")
+                cherrypy.log("Saved scaled image")
+
+                # Calculate the hash of the scaled image
+                image_bytes = self.image.tobytes()
+                led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
                 cherrypy.log("Updated scaled image hash")
 
+    def new_image(self, new_image):
+        # Save the new image
+        self.image = new_image
+        # Trigger an image update and uplload
+        self.update_image()
 
-    def update_image(self, new_image):
+    def update_image(self):
         # Add the command to the queue
-        self.command_queue.put({
-            "command": "update_image",
-            "image": new_image
-        })
+        self.command_queue.put({"command": "update_image"})
+        # Trigger an image upload
+        self.upload_image()
 
-    def upload_image(self, image_data):
+    def upload_image(self):
         # Cancel a currently running upload
+        # TODO: This method is not perfect, if there are a lot of upload commands in a row
         if self.uploading_image:
             self.uploading_image = False
         # Add the image upload to the command queue
-        self.command_queue.put({
-            "command": "upload_image",
-            "iamge": image_data
-        })
+        self.command_queue.put({"command": "upload_image"})
 
     def set_speed(self, speed):
         self.command_queue.put({
@@ -199,7 +203,7 @@ class WebServer(object):
 
         cherrypy.log("set_image data read")
         new_image = Image.open(io.BytesIO(image_data))
-        self.controller.update_image(new_image)
+        self.controller.new_image(new_image)
         cherrypy.log("set_image processed")
         return ujson.dumps({"status": "ok"})
     
