@@ -24,6 +24,7 @@ class Controller(Thread):
         self.command_queue = command_queue
         self.uploading_image = False
         self.image = Image.open("image.png")
+        self.progress_extra_steps = 0
 
         self.height = 120 # TODO: This should come from the stick
 
@@ -46,33 +47,14 @@ class Controller(Thread):
         while True:
             command_data = self.command_queue.get()
             cherrypy.log("Got command: " + command_data["command"])
-            if command_data["command"] == "upload_image":
-                self.uploading_image = True
-                for k in range(10):
-                    cherrypy.log(f"Uploading image... {k+1}/10")
-                    time.sleep(1)
-                    if not self.uploading_image:
-                        cherrypy.log("Cancelling upload")
-                        break
-            elif command_data["command"] == "set_speed":
-                # TODO: Send new speed value to microcontroller
-                cherrypy.log(f"Set speed to {self.led_settings['speed']} m/s")
-            elif command_data["command"] == "set_brightness":
-                # TODO: Send new speed value to microcontroller
-                cherrypy.log(f"Set brightness to {self.led_settings['brightness']*100} %")
-            elif command_data["command"] == "trigger":
-                delay = self.led_settings['trigger_delay']
-                cherrypy.log(f"Got trigger command, will spleep {delay} s")
-                if delay != 0.0:
-                    time.sleep(delay)
-                # TODO: Send trigger to microcontroller
-                cherrypy.log(f"Triggered")
-            elif command_data["command"] == "save_image":
+            if command_data["command"] == "save_image":
+                self.update_progress("processing", "Saving image", 0.0)
                 # Save new original image as png
                 # The compression level is chosen fairly low to speed things up
                 self.image.save("image.png", compress_level=1)
                 cherrypy.log("Saved original image")
             elif command_data["command"] == "update_image":
+                self.update_progress("processing", "Scaling image", 0.2)
                 cherrypy.log("Processing new image")
 
                 # Apply brightness correction .filter?
@@ -97,6 +79,37 @@ class Controller(Thread):
                 image_bytes = self.image.tobytes()
                 self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
                 cherrypy.log("Updated scaled image hash")
+            elif command_data["command"] == "upload_image":
+                self.uploading_image = True
+                self.update_progress("processing", "Uploading image", 0.4)
+                for k in range(10):
+                    cherrypy.log(f"Uploading image... {k+1}/10")
+                    time.sleep(1)
+                    self.led_settings["prograss_value"] = 0.4+0.6*k/9
+                    if not self.uploading_image:
+                        cherrypy.log("Cancelled upload")
+                        self.update_progress("noimage", "", 0.0)
+                        break
+                self.update_progress("ready", "", 0.0)
+            elif command_data["command"] == "set_speed":
+                # TODO: Send new speed value to microcontroller
+                cherrypy.log(f"Set speed to {self.led_settings['speed']} m/s")
+            elif command_data["command"] == "set_brightness":
+                # TODO: Send new speed value to microcontroller
+                cherrypy.log(f"Set brightness to {self.led_settings['brightness']*100} %")
+            elif command_data["command"] == "trigger":
+                delay = self.led_settings['trigger_delay']
+                cherrypy.log(f"Got trigger command, will spleep {delay} s")
+                if delay != 0.0:
+                    time.sleep(delay)
+                # TODO: Send trigger to microcontroller
+                cherrypy.log(f"Triggered")
+
+    def update_progress(self, status, msg, value):
+        self.led_settings["progress_status"] = status
+        self.led_settings["progress_msg"] = msg
+        self.led_settings["prograss_value"] = value
+
 
     def new_image(self, new_image):
         # Save the new image
