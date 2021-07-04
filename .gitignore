@@ -4,3 +4,4 @@
 *.bak
 __pycache__
 .vscode
+.idea/
