@@ -25,7 +25,6 @@ class Controller(Thread):
         self.uploading_image = False
         self.image = Image.open("image.png")
         self.progress_extra_steps = 0
-
         self.height = 120 # TODO: This should come from the stick
 
         # TODO: After getting the size of the stick, the scaled image should be calculated
@@ -42,6 +41,9 @@ class Controller(Thread):
             "prograss_value": 0.0,
             "progress_msg": ""
         }
+
+        # Scale and upload the current image
+        self.update_image()
 
     def run(self):
         while True:
@@ -109,7 +111,6 @@ class Controller(Thread):
         self.led_settings["progress_status"] = status
         self.led_settings["progress_msg"] = msg
         self.led_settings["prograss_value"] = value
-
 
     def new_image(self, new_image):
         # Save the new image
