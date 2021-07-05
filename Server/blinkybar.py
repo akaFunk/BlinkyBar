@@ -246,13 +246,14 @@ class WebServer(object):
     @cherrypy.expose
     def get_image(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image.png")
-        return cherrypy.lib.static.serve_file(path, "image/png", "image.png")
+        #cherrypy.response.headers['Content-Type'] = "image/png"
+        return cherrypy.lib.static.serve_file(path)
     
     # Download the scaled image
     @cherrypy.expose
     def get_image_scaled(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image_scaled.png")
-        return cherrypy.lib.static.serve_file(path, "image/png", "image_scaled.png")
+        return cherrypy.lib.static.serve_file(path)
     
     @cherrypy.expose
     def trigger(self):
