@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "fifo.h"
 
-#define UART_UBRR_CALC(BAUD_,FREQ_) ((FREQ_)/((BAUD_)*16L)-1)
+#define UART_UBRR_CALC(BAUD_,FREQ_) ((FREQ_)/((BAUD_)*8L)-1)
 #define UART_BAUD_RATE 1000000L
 
 extern fifo_t uart_in_fifo;

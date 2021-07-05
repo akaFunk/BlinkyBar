@@ -23,7 +23,7 @@ void uart_init()
     {
         UDR0;
     } while (UCSR0A & (1 << RXC0));
-    UCSR0A = (1 << RXC0) | (1 << TXC0);
+    UCSR0A = (1 << RXC0) | (1 << TXC0) | (1<<U2X0);
     return;
 }
 
