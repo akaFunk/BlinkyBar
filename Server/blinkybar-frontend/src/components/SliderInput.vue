@@ -35,9 +35,10 @@ export default {
     'min': Number,
     'max': Number,
     'interval': Number,
-    'default_value': Number,
-    'unit': String
+    'unit': String,
+    'modelValue': Number,
   },
+  emits: ['update:modelValue'],
   data() {
     return {
       slider_options: {
@@ -78,12 +79,9 @@ export default {
         labelStyle: void 0,
         labelActiveStyle: void 0,
       },
-      value: 0,
+      value: this.modelValue,
       inp_key: 0,
     }
-  },
-  created() {
-    this.value = this.default_value;
   },
   methods: {
     validateInput(input) {
@@ -91,13 +89,22 @@ export default {
       if (!isNaN(num_input)) {
         if (num_input < this.min) {
           this.value = this.min;
+          this.inp_key += 1; // recommended way to re-render the component
         } else if (num_input > this.max) {
           this.value = this.max;
+          this.inp_key += 1;
         } else {
-          this.value = input
+          this.value = input;
         }
       } else {
-        this.inp_key += 1; // recommended way to rerender the component
+        this.inp_key += 1;
+      }
+    },
+  },
+  watch: {
+    value(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.$emit('update:modelValue', parseFloat(newVal));
       }
     }
   }
