@@ -51,21 +51,20 @@ typedef struct
 ```
 with the following parameters:
 - **magic** is a magic byte of value 0xab, which is always the first byte of a message. It is used to identify the start of a message in case of a loss of synchronization. Eventually a module will re-synchronize after a few packets.
-- **type** is the type or command of the message.
-- **src** is the the source address.
+- **type** is the type or command of the message, see below.
+- **src** is the the source address. The host is 0xfe and 0xff is the broadcast address.
 - **dst** is the destination address.
 - **len** is the length of the data field as little endian.
 - **data** is the data, which may have any length between 0 and 256.
 
 The following message types are known:
 - **MESSAGE_TYPE_RET_RST**: Reset the modules address, disable return path (RETO, ~RET_EN), always a broadcast message, len=0
-- **MESSAGE_TYPE_ADDR**: Address idication for the module, len=1 (new address). The module will set the new address, enable the return path, send an ack message, and disable return path.
+- **MESSAGE_TYPE_ADDR**: New address for the module, len=1 (new address). The module will set the new address, enable the return path, send an ack message, and disable return path.
 - **MESSAGE_TYPE_RET_SET**: Enable the module's return path (RETO, ~RET_EN), len=0.
 - **MESSAGE_TYPE_PING**: Ping message, response with an ACK.
 - **MESSAGE_TYPE_STAT**: Display a status value with the LEDs, len=1 (status vlaue).
-- **MESSAGE_TYPE_DEL**: Delete the module's flash, len=0.
+- **MESSAGE_TYPE_DEL**: Delete the module's flash, len=0. ACK is returned when flash is deleted. Note that the module will not forward other messages while deleting the flash. It is therefore advised to send this message either as a broadcast or to the last module in the chain at first.
 - **MESSAGE_TYPE_DATA**: Next data block for the module, len=1..256. The flash block size is 256 bytes and one column has 135 bytes per module.
-- **MESSAGE_TYPE_PREP**: All data transmitted to modules, signal for the modules to prepare for trigger, len=0.
+- **MESSAGE_TYPE_PREP**: All data transmitted to modules, signal for the modules to prepare for trigger, len=0. The module will load the first set of data into the RAM.
 - **MESSAGE_TYPE_ACK**: ACK last message (also used as pong), len=0.
 - **MESSAGE_TYPE_NACK**: NACK last message, len=0.
-
