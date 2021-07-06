@@ -33,6 +33,26 @@ export default {
       progress_value: 0,
       progress_msg: '',
     }
+  },
+  methods: {
+    update() {
+      fetch('/settings')
+          .then(response => response.json())
+          .then(data => this.processNewData(data));
+    },
+    processNewData(data) {
+      this.speed = data.speed;
+      this.brightness = data.brightness;
+      this.trigger_delay = data.trigger_delay;
+      this.allow_scaling = data.allow_scaling;
+      this.image_hash = data.image_hash;
+      this.progress_status = data.progress_status;
+      this.progress_value = data.progress_value;
+      this.progress_msg = data.progress_msg;
+    }
+  },
+  created() {
+    this.update();
   }
 }
 </script>
