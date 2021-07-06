@@ -16,6 +16,7 @@ void fifo_init(fifo_t* fifo, uint16_t size, uint8_t* data);
 void fifo_pushc(fifo_t* fifo, uint8_t data);
 void fifo_pushcc(fifo_t* fifo, uint8_t* data, uint16_t length);
 uint8_t fifo_popc(fifo_t* fifo);
+uint8_t fifo_popc_block(fifo_t* fifo);
 void fifo_popcc(fifo_t* fifo, uint8_t* data, uint16_t length);
 uint8_t fifo_readc(fifo_t* fifo, uint16_t pos);
 uint16_t fifo_used(fifo_t* fifo);

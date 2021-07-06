@@ -52,6 +52,12 @@ uint8_t fifo_popc(fifo_t* fifo)
 	return data;
 }
 
+uint8_t fifo_popc_block(fifo_t* fifo)
+{
+	while(!fifo_used(fifo));
+	return fifo_popc(fifo);
+}
+
 void fifo_popcc(fifo_t* fifo, uint8_t* data, uint16_t length)
 {
     for(uint16_t i=0; i<length; i++)
