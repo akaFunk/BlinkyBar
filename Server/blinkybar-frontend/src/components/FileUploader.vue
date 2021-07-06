@@ -1,7 +1,7 @@
 <template>
   <div class="fileuplaoder-box">
     <div>
-      <img :src="img_src + img_key" :key="img_key" alt="scaled image stored on device"/>
+      <img :src="resultUrl + imageHash" :key="imageHash" alt="scaled image stored on device"/>
     </div>
     <div>
       <input type="file" style="display: none;" ref="file" accept="image/*" @change="onFileChange">
@@ -14,11 +14,9 @@
 
 export default {
   name: "FileUploader",
-  props: ['uploadUrl', 'resultUrl'],
+  props: ['uploadUrl', 'resultUrl', 'imageHash'],
   data() {
     return {
-      img_src: '/get_image_scaled?fake_param=',
-      img_key: 0,
     }
   },
   methods: {
@@ -27,8 +25,7 @@ export default {
       let image = e.target.files[0];
       let formData = new FormData();
       formData.append("image_obj", image);
-      fetch('/set_image', {method: "PUT", body: formData});
-      this.img_key += 1;
+      fetch(this.uploadUrl, {method: "PUT", body: formData});
     }
   }
 }

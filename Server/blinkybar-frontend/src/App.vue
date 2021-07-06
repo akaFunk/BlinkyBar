@@ -6,7 +6,7 @@
                   :scaling-factor="100"/>
     <slider-input caption="Trigger delay" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
     <toggle-switch caption="Allow scaling" v-model="allow_scaling"/>
-    <file-uploader />
+    <file-uploader upload-url="/set_image" result-url="/get_image_scaled?fake_param=" image-hash="image_hash"/>
   </div>
 </template>
 
@@ -28,6 +28,10 @@ export default {
       brightness: 0.5,
       trigger_delay: 0,
       allow_scaling: true,
+      image_hash: '',
+      progress_status: '',
+      progress_value: 0,
+      progress_msg: '',
     }
   }
 }
