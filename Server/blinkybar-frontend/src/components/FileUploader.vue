@@ -1,17 +1,24 @@
 <template>
-  <div>
-    <input type="file" style="display: none;" ref="file" accept="image/*" @change="onFileChange">
-    <button class="upload-btn" @click="$refs.file.click()">Upload image</button>
+  <div class="fileuplaoder-box">
+    <div>
+      <img :src="img_src + img_key" :key="img_key" alt="scaled image stored on device"/>
+    </div>
+    <div>
+      <input type="file" style="display: none;" ref="file" accept="image/*" @change="onFileChange">
+      <button class="upload-btn" @click="$refs.file.click()">Upload new image</button>
+    </div>
   </div>
 </template>
 
 <script>
+
 export default {
   name: "FileUploader",
   props: ['uploadUrl', 'resultUrl'],
   data() {
     return {
-      image_data: '',
+      img_src: '/get_image_scaled?fake_param=',
+      img_key: 0,
     }
   },
   methods: {
@@ -21,30 +28,36 @@ export default {
       let formData = new FormData();
       formData.append("image_obj", image);
       fetch('/set_image', {method: "PUT", body: formData});
+      this.img_key += 1;
     }
   }
 }
 </script>
 
 <style scoped>
+.fileuplaoder-box {
+  margin-top: 1vh;
+}
+
 .upload-btn {
   background-color: #9cd5ff;
-  border-radius:3px;
-  border:1px solid #0b0e07;
-  display:inline-block;
-  cursor:pointer;
+  border-radius: 3px;
+  border: 1px solid #0b0e07;
+  display: inline-block;
+  cursor: pointer;
   color: #000000;
-  font-size:15px;
-  padding:9px 23px;
-  text-decoration:none;
-  text-shadow:0 1px 0 #cddeff;
+  font-size: 15px;
+  padding: 9px 23px;
+  text-decoration: none;
+  text-shadow: 0 1px 0 #cddeff;
 }
+
 .upload-btn:hover {
   background-color: #69c1ff;
 }
-.upload-btn:active {
-  position:relative;
-  top:1px;
-}
 
+.upload-btn:active {
+  position: relative;
+  top: 1px;
+}
 </style>
