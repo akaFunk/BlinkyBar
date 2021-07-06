@@ -3,10 +3,10 @@
     <h3>{{  caption }}</h3>
     <span class="slider-value">
     <label class="switch">
-      <input type="checkbox" :value="modelValue" @change="$emit('update:modelValue', $event.target.checked)">
+      <input type="checkbox" :checked="modelValue" @change="update">
       <span class="slider round"></span>
     </label>
-    {{ value ? 'On' : 'Off' }}
+    {{ modelValue ? 'On' : 'Off' }}
     </span>
   </div>
 </template>
@@ -19,11 +19,16 @@ export default {
   },
   data() {
     return {
-      value: true,
-      'modelValue': Number,
+      'modelValue': Boolean,
     }
   },
   emits: ['update:modelValue'],
+  methods: {
+    update(e) {
+      this.modelValue = e.target.checked;
+      this.$emit('update:modelValue', this.modelValue);
+    }
+  }
 }
 </script>
 
@@ -93,7 +98,7 @@ input:checked + .slider:before {
 .slider-value {
   font-weight: bold;
   width: auto;
-  margin-left: 0.5vw;
+  margin-left: 10px;
   line-height: 2;
   display: inline-block;
   vertical-align: middle;
