@@ -4,18 +4,21 @@
     <slider-input caption="Speed" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
     <slider-input caption="Brightness" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"/>
     <slider-input caption="Trigger delay" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
+    <toggle-switch />
     <file-uploader />
   </div>
 </template>
 
 <script>
 import SliderInput from "./components/SliderInput";
+import ToggleSwitch from "@/components/ToggleSwitch";
 import FileUploader from "@/components/FileUploader";
 
 export default {
   name: 'App',
   components: {
     SliderInput,
+    ToggleSwitch,
     FileUploader
   },
   data: function () {
