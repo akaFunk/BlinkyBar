@@ -1,12 +1,12 @@
 <template>
   <div>
-    <h3>Allow scaling</h3>
-    <span class ="slider-value">
+    <h3>{{  caption }}</h3>
+    <span class="slider-value">
     <label class="switch">
-      <input type="checkbox" v-model="value">
+      <input type="checkbox" :value="modelValue" @change="$emit('update:modelValue', $event.target.checked)">
       <span class="slider round"></span>
     </label>
-    {{ value? 'On' : 'Off' }}
+    {{ value ? 'On' : 'Off' }}
     </span>
   </div>
 </template>
@@ -14,11 +14,16 @@
 <script>
 export default {
   name: "ToggleSwitch",
+  props: {
+    caption: String,
+  },
   data() {
     return {
-      value : true,
+      value: true,
+      'modelValue': Number,
     }
-  }
+  },
+  emits: ['update:modelValue'],
 }
 </script>
 
