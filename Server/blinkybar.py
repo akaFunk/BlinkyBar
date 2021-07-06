@@ -244,14 +244,14 @@ class WebServer(object):
     
     # Download the full image
     @cherrypy.expose
-    def get_image(self):
+    def get_image(self, fake_param = 0):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image.png")
         #cherrypy.response.headers['Content-Type'] = "image/png"
         return cherrypy.lib.static.serve_file(path)
     
     # Download the scaled image
     @cherrypy.expose
-    def get_image_scaled(self):
+    def get_image_scaled(self, fake_param = 0):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "image_scaled.png")
         return cherrypy.lib.static.serve_file(path)
     
