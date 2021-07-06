@@ -36,6 +36,7 @@ export default {
     'max': Number,
     'interval': Number,
     'unit': String,
+    'scalingFactor': Number,
     'modelValue': Number,
   },
   emits: ['update:modelValue'],
@@ -79,7 +80,8 @@ export default {
         labelStyle: void 0,
         labelActiveStyle: void 0,
       },
-      value: this.modelValue,
+      value: 0,
+      factor: parseFloat(this.scalingFactor),
       inp_key: 0,
     }
   },
@@ -104,9 +106,15 @@ export default {
   watch: {
     value(newVal, oldVal) {
       if (newVal !== oldVal) {
-        this.$emit('update:modelValue', parseFloat(newVal));
+        this.$emit('update:modelValue', parseFloat(newVal) / this.factor);
       }
     }
+  },
+  created() {
+    if(isNaN(this.factor)) {
+      this.factor = 1;
+    }
+    this.value = this.modelValue * this.factor;
   }
 }
 </script>
