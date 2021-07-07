@@ -6,37 +6,69 @@
                   :scaling-factor="100"/>
     <slider-input caption="Trigger delay" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
     <toggle-switch caption="Allow scaling" v-model="allow_scaling"/>
-    <file-uploader upload-url="/set_image" result-url="/get_image_scaled?fake_param=" image-hash="image_hash"/>
+    <div>
+      <div v-if="progress_status==='ready'">
+        <img :src="resultUrl + image_hash" :key="image_hash" alt="scaled image stored on the BlinkyBar"/>
+      </div>
+      <div v-if="progress_status==='noimage'">
+        <p>No image uploaded.</p>
+      </div>
+      <div v-if="progress_status === 'processing' || progress_status === 'playing'">
+        <ve-progress :progress="progress_value*100" empty-color="#e1e1e1" color="#69c0ff" :size="80">
+          <legend>{{ progress_percent }} %</legend>
+        </ve-progress>
+        <p>{{progress_msg}}...</p>
+      </div>
+    </div>
+    <file-uploader upload-url="/set_image"/>
+
+    <hr/>
+    Speed: {{ speed }} <br/>
+    Brightness: {{ brightness }}<br/>
+    Trigger delay: {{ trigger_delay }}<br/>
+    Allow scaling: {{ allow_scaling }}<br />
+    Progress status: {{progress_status}}<br />
+    Progress value: {{progress_value}}<br />
+    Progress msg: {{progress_msg}}<br />
+
   </div>
 </template>
 
 <script>
-import SliderInput from "./components/SliderInput";
+import SliderInput from "@/components/SliderInput";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import FileUploader from "@/components/FileUploader";
+import { VeProgress } from "vue-ellipse-progress";
+
+let printf = require('printf');
 
 export default {
   name: 'App',
   components: {
     SliderInput,
     ToggleSwitch,
-    FileUploader
+    FileUploader,
+    VeProgress,
   },
   data: function () {
     return {
-      speed: 1,
-      brightness: 0.5,
+      resultUrl: "/get_image_scaled?fake_param=",
+      settingsUrl: "/settings",
+      speed: 0,
+      brightness: 0,
       trigger_delay: 0,
       allow_scaling: true,
       image_hash: '',
       progress_status: '',
       progress_value: 0,
+      progress_percent : 0,
       progress_msg: '',
+      timer: setInterval(this.fetchData, 200),
     }
   },
   methods: {
-    update() {
-      fetch('/settings')
+    fetchData() {
+      fetch(this.settingsUrl)
           .then(response => response.json())
           .then(data => this.processNewData(data));
     },
@@ -49,10 +81,29 @@ export default {
       this.progress_status = data.progress_status;
       this.progress_value = data.progress_value;
       this.progress_msg = data.progress_msg;
+      this.progress_percent = printf('%.1f', this.progress_value*100);
+    },
+    update(param, value) {
+      console.log(this.settingsUrl + '?' + param + '=' + value);
+      fetch(this.settingsUrl + '?' + param + '=' + value);
     }
   },
+  watch: {
+    speed(newVal) {
+      this.update('speed', newVal);
+    },
+    brightness (newVal) {
+      this.update('brightness', newVal);
+    },
+    trigger_delay (newVal) {
+      this.update('trigger_delay', newVal);
+    },
+    allow_scaling (newVal) {
+      this.update('allow_scaling', newVal);
+    },
+  },
   created() {
-    this.update();
+    this.fetchData();
   }
 }
 </script>

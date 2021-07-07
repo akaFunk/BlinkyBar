@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "printf": "^0.6.1",
     "vue": "^3.0.0",
+    "vue-ellipse-progress": "^2.0.0",
     "vue-slider-component": "^4.0.0-beta.4"
   },
   "devDependencies": {
