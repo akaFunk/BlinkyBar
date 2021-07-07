@@ -4,24 +4,93 @@ import os
 from PIL import Image, ImageEnhance
 import ujson
 import io
-import serial
+from serial import Serial
 from threading import Thread
 import time
 from queue import Queue
 import datetime
 import hashlib
-#import configparser
+import configparser
+import numpy as np
+from message import *
 
+
+# Format cherrypy logging with ms output
 cherrypy._cplogging.LogManager.time = lambda self : \
      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:23]
 
-# State
+
+# The packet router will abstract the two strings of modules and the module orientation. It will
+# initialize the modules, give them an address. The class will provide the number of modules
+# available and the height in pixels. It also converts the module_nr to the correct string and
+# module address. The module_nr is a number identifying the modules starting at the top with 0
+# and counting up for modules below that.
+# When you send data to one of the modules, PacketRouter will automatically mirror the data for
+# the upper bar.
+class PacketRouter:
+    def __init__(self, ser_port_name_up=None, ser_port_name_down=None):
+        # Initialize serial ports
+        self.ser_port_name_up = ser_port_name_up
+        self.ser_port_name_down = ser_port_name_down
+        if ser_port_name_up is None:
+            self.ser_port_up = None
+        else:
+            self.ser_port_up = Serial(port=ser_port_name_up, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+            cherrypy.log(f"Opened {ser_port_name_up} for up link")
+        if ser_port_name_down is None:
+            self.ser_port_down = None
+        else:
+            self.ser_port_down = Serial(port=ser_port_name_down, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+            cherrypy.log(f"Opened {ser_port_name_down} for down link")
+        
+        # Find modules
+        self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
+        self.module_port_addr_mirror.append({"port": self.ser_port_up, "addr": 0, "mirror": False}) # Add a fake module instead
+
+        # DEBUG: Send a test message
+        while True:
+            msg = Message(MESSAGE_TYPE_PING)
+            self.send_message(0, msg)
+            time.sleep(1)
+    
+    def init_modules(self):
+        cherrypy.log("Initializing modules...")
+
+    def send_message(self, module_nr: int, message: Message):
+        # Convert module_nr to the serial port and the module address
+        port = self.module_port_addr_mirror[module_nr]["port"]
+        addr = self.module_port_addr_mirror[module_nr]["addr"]
+        message.dst = addr
+        port.write(message.to_bytes())
+
+        # Wait for ACK
+        # TODO: Wait for ACK - when sending to broadcast, we don't expect an ACK?
+
+        # Wait for magic word
+        while True:
+            data = port.read(1)
+            if len(data) != 1:
+                cherrypy.log(f"Lost sync, got {data}")
+                return False
+            if data[0] == MESSAGE_MAGIC:
+                break
+            # If this was not the magic word, get the next byte
+            time.sleep(0.001)
+    
+    def send_image_data(self, module_nr: int, img_data: np.array):
+        # Mirror image data if required
+        module = self.module_port_addr_mirror[module_nr]
+        if module["mirror"]:
+            img_data = np.flipud(img_data)
+        message = Message(MESSAGE_TYPE_DATA, img_data)
+        self.send_message(module_nr, message)
 
 
-class Controller(Thread):
-    def __init__(self, command_queue):
+class ModuleController(Thread):
+    def __init__(self, config, command_queue):
         Thread.__init__(self, daemon=True)
         self.command_queue = command_queue
+        self.router = PacketRouter(config["port_up"], config["port_down"])
         self.uploading_image = False
         self.image = Image.open("image.png")
         self.progress_extra_steps = 0
@@ -42,6 +111,9 @@ class Controller(Thread):
             "progress_msg": ""
         }
 
+        # Initialize the modules
+        self.init_modules()
+
         # Scale and upload the current image
         self.update_image()
 
@@ -49,7 +121,10 @@ class Controller(Thread):
         while True:
             command_data = self.command_queue.get()
             cherrypy.log("Got command: " + command_data["command"])
-            if command_data["command"] == "save_image":
+            if command_data["command"] == "init_modules":
+                # Send a reset command
+                self.router.init_modules()
+            elif command_data["command"] == "save_image":
                 self.update_progress("processing", "Saving image", 0.0)
                 # Save new original image as png
                 # The compression level is chosen fairly low to speed things up
@@ -107,6 +182,9 @@ class Controller(Thread):
                 # TODO: Send trigger to microcontroller
                 cherrypy.log(f"Triggered")
 
+    def init_modules(self):
+        self.command_queue.put({"command": "init_modules"})
+
     def update_progress(self, status, msg, value):
         self.led_settings["progress_status"] = status
         self.led_settings["progress_msg"] = msg
@@ -158,9 +236,10 @@ class Controller(Thread):
 
 
 class WebServer(object):
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.command_queue = Queue()
-        self.controller = Controller(self.command_queue)
+        self.controller = ModuleController(config, self.command_queue)
         self.controller.start()
         cherrypy.log("BlinkyBar server started")
 
@@ -260,9 +339,16 @@ class WebServer(object):
         return ujson.dumps({"success": True})
 
 if __name__ == '__main__':
-    #config = configparser.RawConfigParser()
-    #config.read("BlinkyBar.conf")
-    #print(config.get("general", "test"))
+    cfgparser = configparser.RawConfigParser()
+    cfgparser.read("blinkybar.conf")
+    config = dict()
+    config["port_up"] = cfgparser.get("blinkybar", "port_up")
+    if config["port_up"] == "none":
+        config["port_up"] = None
+    config["port_down"] = cfgparser.get("blinkybar", "port_down")
+    if config["port_down"] == "none":
+        config["port_down"] = None
+    config["baudrate"] = float(cfgparser.get("blinkybar", "baudrate"))
 
     cherrypy.log("Started BlinkyBar Server")
 
@@ -274,4 +360,4 @@ if __name__ == '__main__':
             'tools.staticdir.dir': ''
         }
     }
-    cherrypy.quickstart(WebServer(), '/', conf)
+    cherrypy.quickstart(WebServer(config), '/', conf)
