@@ -38,7 +38,7 @@ class Controller(Thread):
             "allow_scaling": True,
             "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
             "progress_status": "noimage",
-            "prograss_value": 0.0,
+            "progress_value": 0.0,
             "progress_msg": ""
         }
 
@@ -87,7 +87,7 @@ class Controller(Thread):
                 for k in range(10):
                     cherrypy.log(f"Uploading image... {k+1}/10")
                     time.sleep(1)
-                    self.led_settings["prograss_value"] = 0.4+0.6*k/9
+                    self.led_settings["progress_value"] = 0.4+0.6*k/9
                     if not self.uploading_image:
                         cherrypy.log("Cancelled upload")
                         self.update_progress("noimage", "", 0.0)
@@ -110,7 +110,7 @@ class Controller(Thread):
     def update_progress(self, status, msg, value):
         self.led_settings["progress_status"] = status
         self.led_settings["progress_msg"] = msg
-        self.led_settings["prograss_value"] = value
+        self.led_settings["progress_value"] = value
 
     def new_image(self, new_image):
         # Save the new image
