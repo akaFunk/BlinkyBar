@@ -1,23 +1,18 @@
 <template>
-  <div class="fileuplaoder-box">
-    <div>
-      <img :src="resultUrl + imageHash" :key="imageHash" alt="scaled image stored on device"/>
-    </div>
-    <div>
+  <div class="file-uploader-box">
       <input type="file" style="display: none;" ref="file" accept="image/*" @change="onFileChange">
       <button class="upload-btn" @click="$refs.file.click()">Upload new image</button>
-    </div>
   </div>
 </template>
 
 <script>
-
 export default {
   name: "FileUploader",
-  props: ['uploadUrl', 'resultUrl', 'imageHash'],
+  components: {
+  },
+  props: ['uploadUrl'],
   data() {
-    return {
-    }
+    return {}
   },
   methods: {
     onFileChange(e) {
@@ -32,7 +27,7 @@ export default {
 </script>
 
 <style scoped>
-.fileuplaoder-box {
+.file-uploader-box {
   margin-top: 1vh;
 }
 
