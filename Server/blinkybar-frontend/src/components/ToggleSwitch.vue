@@ -73,11 +73,14 @@ export default {
 }
 
 input:checked + .slider {
-  background-color: #69c1ff;
+  background-color: #9cd5ff;
+}
+input:checked:hover + .slider {
+  background-color: #69c0ff;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #69c1ff;
+  box-shadow: 0 0 1px #9cd5ff;
 }
 
 input:checked + .slider:before {
