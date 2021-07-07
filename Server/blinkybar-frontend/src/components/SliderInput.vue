@@ -9,11 +9,13 @@
             :max="max"
             :interval="interval"
             v-bind="slider_options"
+            @drag-end="emitValue"
         />
       </div>
       <div class="slider-value">
-        <input :value="value" type="number" :min="min" :max="max" :step="interval"
-               @input="validateInput($event.target.value)" :key="inp_key"/>
+        <input v-model="value" type="number" :min="min" :max="max" :step="interval"
+               @input="validateInput($event.target.value)" :key="inp_key"
+               @blur="emitValue"/>
         {{ unit }}
       </div>
     </div>
@@ -102,16 +104,18 @@ export default {
         this.inp_key += 1;
       }
     },
+    emitValue() {
+      console.log('Emitting new value: ' + this.value)
+      this.$emit('update:modelValue', parseFloat(this.value) / this.factor);
+    },
   },
   watch: {
-    value(newVal, oldVal) {
-      if (newVal !== oldVal) {
-        this.$emit('update:modelValue', parseFloat(newVal) / this.factor);
-      }
+    modelValue(newVal) {
+      this.value = newVal * this.factor;
     }
   },
   created() {
-    if(isNaN(this.factor)) {
+    if (isNaN(this.factor)) {
       this.factor = 1;
     }
     this.value = this.modelValue * this.factor;
