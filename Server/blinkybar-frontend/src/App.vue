@@ -23,6 +23,7 @@
     <file-uploader upload-url="/set_image"/>
 
     <hr/>
+    <h3>Debug info</h3>
     Speed: {{ speed }} <br/>
     Brightness: {{ brightness }}<br/>
     Trigger delay: {{ trigger_delay }}<br/>
