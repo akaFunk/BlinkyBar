@@ -20,6 +20,15 @@ dtoverlay=miniuart-bt
 __EOF__
 		fi
 		;;
+		--disable-bt)
+		if ! grep -qE '^dtoverlay=' "${BINARIES_DIR}/rpi-firmware/config.txt"; then
+			echo "Adding 'dtoverlay=disable-bt' to config.txt"
+			cat << __EOF__ >> "${BINARIES_DIR}/rpi-firmware/config.txt"
+
+dtoverlay=disable-bt
+__EOF__
+		fi
+		;;
 		--aarch64)
 		# Run a 64bits kernel (armv8)
 		sed -e '/^kernel=/s,=.*,=Image,' -i "${BINARIES_DIR}/rpi-firmware/config.txt"
