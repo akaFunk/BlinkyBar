@@ -1,7 +1,7 @@
 <template>
   <div class="file-uploader-box">
       <input type="file" style="display: none;" ref="file" accept="image/*" @change="onFileChange">
-      <button class="upload-btn" @click="$refs.file.click()">Upload new image</button>
+      <div @click="$refs.file.click()"><slot><button class="upload-btn">Upload new image</button></slot></div>
   </div>
 </template>
 

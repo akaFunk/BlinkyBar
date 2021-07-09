@@ -2,7 +2,9 @@
   <div class="app">
     <div class="image-box">
       <div v-if="progress_status==='ready'">
-        <img :src="resultUrl + image_hash" :key="image_hash" alt="scaled image stored on the BlinkyBar"/>
+        <file-uploader upload-url="/set_image">
+          <img :src="resultUrl + image_hash" :key="image_hash" alt="scaled image stored on the BlinkyBar"/>
+        </file-uploader>
       </div>
       <div v-if="progress_status==='noimage'">
         <p>No image uploaded.</p>
@@ -127,5 +129,9 @@ export default {
 
 .image-box {
   text-align: center;
+}
+
+img {
+  image-rendering: pixelated;
 }
 </style>
