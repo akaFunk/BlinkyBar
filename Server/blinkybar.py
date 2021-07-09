@@ -139,7 +139,7 @@ class ModuleController(Thread):
                 # Apply brightness correction .filter?
                 enhancer = ImageEnhance.Brightness(self.image)
                 cherrypy.log(f"Brightness: {self.led_settings['brightness']}")
-                self.image = enhancer.enhance(self.led_settings["brightness"])
+                image_scaled = enhancer.enhance(self.led_settings["brightness"])
                 cherrypy.log(f"Applied brightness of {self.led_settings['brightness']*100}%")
 
                 # TODO: Crop image if required
@@ -147,7 +147,7 @@ class ModuleController(Thread):
                 # Scale image
                 # TODO: Only if it has to be rescaled...
                 width = round(self.height*self.image.size[0]/self.image.size[1])
-                image_scaled = self.image.resize((width, self.height))
+                image_scaled = image_scaled.resize((width, self.height))
                 cherrypy.log(f"Image resized to {width}x{self.height}")
 
                 # Save scaled image
@@ -155,8 +155,9 @@ class ModuleController(Thread):
                 cherrypy.log("Saved scaled image")
 
                 # Calculate the hash of the scaled image
-                image_bytes = self.image.tobytes()
+                image_bytes = image_scaled.tobytes()
                 self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
+                cherrypy.log(f"New hash: {self.led_settings['image_hash']}")
                 cherrypy.log("Updated scaled image hash")
             elif command_data["command"] == "upload_image":
                 self.uploading_image = True
