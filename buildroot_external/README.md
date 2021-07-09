@@ -6,7 +6,7 @@
 git clone git://git.busybox.net/buildroot
 cd buildroot
 git checkout 2021.02
-make BR2_EXTERNAL=../path/to/repo/buildroot_external/ LEDStrip_pi_defconfig
+make BR2_EXTERNAL=../path/to/repo/buildroot_external/ BlinkyBar_defconfig
 make
 ```
 
