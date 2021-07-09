@@ -163,7 +163,7 @@ class ModuleController(Thread):
                 self.update_progress("processing", "Uploading image", 0.4)
                 for k in range(10):
                     cherrypy.log(f"Uploading image... {k+1}/10")
-                    time.sleep(1)
+                    time.sleep(0.2)
                     self.led_settings["progress_value"] = 0.4+0.6*k/9
                     if not self.uploading_image:
                         cherrypy.log("Cancelled upload")
