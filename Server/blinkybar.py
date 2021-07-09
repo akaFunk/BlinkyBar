@@ -67,15 +67,15 @@ class PacketRouter:
         # TODO: Wait for ACK - when sending to broadcast, we don't expect an ACK?
 
         # Wait for magic word
-        while True:
-            data = port.read(1)
-            if len(data) != 1:
-                cherrypy.log(f"Lost sync, got {data}")
-                return False
-            if data[0] == MESSAGE_MAGIC:
-                break
-            # If this was not the magic word, get the next byte
-            time.sleep(0.001)
+        #while True:
+        #    data = port.read(1)
+        #    if len(data) != 1:
+        #        cherrypy.log(f"Lost sync, got {data}")
+        #        return False
+        #    if data[0] == MESSAGE_MAGIC:
+        #        break
+        #    # If this was not the magic word, get the next byte
+        #    time.sleep(0.001)
     
     def send_image_data(self, module_nr: int, img_data: np.array):
         # Mirror image data if required
