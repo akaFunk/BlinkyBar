@@ -4,7 +4,7 @@ import os
 from PIL import Image, ImageEnhance
 import ujson
 import io
-from serial import Serial
+from serial import Serial, serialutil
 from threading import Thread
 import time
 from queue import Queue
@@ -32,16 +32,18 @@ class PacketRouter:
         # Initialize serial ports
         self.ser_port_name_up = ser_port_name_up
         self.ser_port_name_down = ser_port_name_down
-        if ser_port_name_up is None:
-            self.ser_port_up = None
-        else:
+        self.ser_port_up = None
+        try:
             self.ser_port_up = Serial(port=ser_port_name_up, baudrate=1000000, timeout=0.5, write_timeout=0.5)
-            cherrypy.log(f"Opened {ser_port_name_up} for up link")
-        if ser_port_name_down is None:
-            self.ser_port_down = None
-        else:
+        except serialutil.SerialException:
+            cherrypy.log("Unable to open serial port")
+        cherrypy.log(f"Opened {ser_port_name_up} for up link")
+        self.ser_port_down = None
+        try:
             self.ser_port_down = Serial(port=ser_port_name_down, baudrate=1000000, timeout=0.5, write_timeout=0.5)
-            cherrypy.log(f"Opened {ser_port_name_down} for down link")
+        except FileNotFoundError:
+            cherrypy.log("Unable to open serial port")
+        cherrypy.log(f"Opened {ser_port_name_down} for down link")
         
         # Find modules
         self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
@@ -61,7 +63,7 @@ class PacketRouter:
         port = self.module_port_addr_mirror[module_nr]["port"]
         addr = self.module_port_addr_mirror[module_nr]["addr"]
         message.dst = addr
-        port.write(message.to_bytes())
+        #port.write(message.to_bytes())
 
         # Wait for ACK
         # TODO: Wait for ACK - when sending to broadcast, we don't expect an ACK?
