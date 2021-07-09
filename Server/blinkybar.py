@@ -105,12 +105,37 @@ class ModuleController(Thread):
             "error_msg": "",
             "brightness": 1.0,
             "speed": 2.0,
+            "color_temperature": 6500,
             "trigger_delay": 1.0,
             "allow_scaling": True,
             "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
             "progress_status": "noimage",
             "progress_value": 0.0,
             "progress_msg": ""
+        }
+
+        # Intialize color temperature table
+
+        self.color_temperature_table = {
+            1000: (255,56,0),
+            1500: (255,109,0),
+            2000: (255,137,18),
+            2500: (255,161,72),
+            3000: (255,180,107),
+            3500: (255,196,137),
+            4000: (255,209,163),
+            4500: (255,219,186),
+            5000: (255,228,206),
+            5500: (255,236,224),
+            6000: (255,243,239),
+            6500: (255,249,253),
+            7000: (245,243,255),
+            7500: (235,238,255),
+            8000: (227,233,255),
+            8500: (220,229,255),
+            9000: (214,225,255),
+            9500: (208,222,255),
+            10000: (204,219,255)
         }
 
         # Initialize the modules
@@ -128,6 +153,8 @@ class ModuleController(Thread):
                 self.router.init_modules()
             elif command_data["command"] == "save_image":
                 self.update_progress("processing", "Saving image", 0.0)
+                # Convert image to RGB
+                self.image = self.image.convert("RGB")
                 # Save new original image as png
                 # The compression level is chosen fairly low to speed things up
                 self.image.save("image.png", compress_level=1)
@@ -136,8 +163,17 @@ class ModuleController(Thread):
                 self.update_progress("processing", "Scaling image", 0.2)
                 cherrypy.log("Processing new image")
 
-                # Apply brightness correction .filter?
-                enhancer = ImageEnhance.Brightness(self.image)
+                # Apply color temperature correction
+                temp_sel = self.led_settings['color_temperature']
+                # Get the closest RGB values from the table
+                r, g, b = self.color_temperature_table.get(temp_sel) or self.color_temperature_table[min(self.color_temperature_table.keys(), key = lambda key: abs(key-temp_sel))]
+                matrix = (r/255.0, 0.0, 0.0, 0.0,
+                    0.0, g/255.0, 0.0, 0.0,
+                    0.0, 0.0, b/255.0, 0.0)
+                image_scaled = self.image.convert('RGB', matrix)
+
+                # Apply brightness correction
+                enhancer = ImageEnhance.Brightness(image_scaled)
                 cherrypy.log(f"Brightness: {self.led_settings['brightness']}")
                 image_scaled = enhancer.enhance(self.led_settings["brightness"])
                 cherrypy.log(f"Applied brightness of {self.led_settings['brightness']*100}%")
@@ -174,9 +210,6 @@ class ModuleController(Thread):
             elif command_data["command"] == "set_speed":
                 # TODO: Send new speed value to microcontroller
                 cherrypy.log(f"Set speed to {self.led_settings['speed']} m/s")
-            elif command_data["command"] == "set_brightness":
-                # TODO: Send new speed value to microcontroller
-                cherrypy.log(f"Set brightness to {self.led_settings['brightness']*100} %")
             elif command_data["command"] == "trigger":
                 delay = self.led_settings['trigger_delay']
                 cherrypy.log(f"Got trigger command, will spleep {delay} s")
@@ -221,7 +254,11 @@ class ModuleController(Thread):
 
     def set_brightness(self, brightness):
         self.led_settings["brightness"] = brightness
-        self.command_queue.put({"command": "set_brightness"})
+        # Update the image
+        self.update_image()
+    
+    def set_color_temperature(self, color_temperature):
+        self.led_settings["color_temperature"] = color_temperature
         # Update the image
         self.update_image()
 
@@ -252,7 +289,7 @@ class WebServer(object):
         return open(os.path.join(static_dir, "index.html"))
     
     @cherrypy.expose
-    def settings(self, speed=None, brightness=None, trigger_delay=None, allow_scaling=None):
+    def settings(self, speed=None, brightness=None, trigger_delay=None, allow_scaling=None, color_temperature=None):
         # Create a copy of the current settings dict
         retval = dict(self.controller.led_settings)
         retval.update(dict({"success:": False, "error_msg": ""}))
@@ -275,6 +312,15 @@ class WebServer(object):
                 return ujson.dumps(retval, indent=4)
             if brightness < 0.1 or brightness > 1.0:
                 retval.update(dict({"error_msg": "Brightness is out of range"}))
+                return ujson.dumps(retval, indent=4)
+        if color_temperature is not None:
+            try:
+                color_temperature = float(color_temperature)
+            except ValueError:
+                retval.update(dict({"error_msg": "Color temperature is not a float"}))
+                return ujson.dumps(retval, indent=4)
+            if color_temperature < 1000 or color_temperature > 10000:
+                retval.update(dict({"error_msg": "Color temperature is out of range"}))
                 return ujson.dumps(retval, indent=4)
         if trigger_delay is not None:
             try:
@@ -300,6 +346,9 @@ class WebServer(object):
         
         if brightness is not None:
             self.controller.set_brightness(brightness)
+        
+        if color_temperature is not None:
+            self.controller.set_color_temperature(color_temperature)
         
         if trigger_delay is not None:
             self.controller.set_trigger_delay(trigger_delay)
