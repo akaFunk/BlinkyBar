@@ -50,10 +50,10 @@ class PacketRouter:
         self.module_port_addr_mirror.append({"port": self.ser_port_up, "addr": 0, "mirror": False}) # Add a fake module instead
 
         # DEBUG: Send a test message
-        while True:
-            msg = Message(MESSAGE_TYPE_PING)
-            self.send_message(0, msg)
-            time.sleep(1)
+        #while True:
+        #    msg = Message(MESSAGE_TYPE_PING)
+        #    self.send_message(0, msg)
+        #    time.sleep(1)
     
     def init_modules(self):
         cherrypy.log("Initializing modules...")
@@ -63,21 +63,21 @@ class PacketRouter:
         port = self.module_port_addr_mirror[module_nr]["port"]
         addr = self.module_port_addr_mirror[module_nr]["addr"]
         message.dst = addr
-        #port.write(message.to_bytes())
+        port.write(message.to_bytes())
 
         # Wait for ACK
         # TODO: Wait for ACK - when sending to broadcast, we don't expect an ACK?
 
         # Wait for magic word
-        #while True:
-        #    data = port.read(1)
-        #    if len(data) != 1:
-        #        cherrypy.log(f"Lost sync, got {data}")
-        #        return False
-        #    if data[0] == MESSAGE_MAGIC:
-        #        break
-        #    # If this was not the magic word, get the next byte
-        #    time.sleep(0.001)
+        while True:
+            data = port.read(1)
+            if len(data) != 1:
+                cherrypy.log(f"Lost sync, got {data}")
+                return False
+            if data[0] == MESSAGE_MAGIC:
+                break
+            # If this was not the magic word, get the next byte
+            time.sleep(0.001)
     
     def send_image_data(self, module_nr: int, img_data: np.array):
         # Mirror image data if required
