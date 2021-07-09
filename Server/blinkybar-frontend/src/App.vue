@@ -16,13 +16,12 @@
         <p>{{ progress_msg }}...</p>
       </div>
     </div>
-
-    <slider-input caption="&#x1F3c3;" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
-    <slider-input caption="&#x1F506;" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
+    <slider-input icon="running" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
+    <slider-input icon="sun" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
                   :scaling-factor="100"/>
-    <slider-input caption="&#9201;" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
-    <toggle-switch caption="Allow scaling" v-model="allow_scaling"/>
-    <file-uploader upload-url="/set_image"/>
+    <slider-input icon="stopwatch-20" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
+    <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
+
 
     <hr/>
     <h3>Debug info</h3>

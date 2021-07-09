@@ -1,7 +1,10 @@
 <template>
   <div>
     <div class="slider-container">
-      <div class="slider-caption">{{ caption }}</div>
+      <div class="slider-caption">
+        {{ caption.length > 0 ? caption : '' }}
+        <font-awesome-icon v-if="icon.length>0" :icon="['fas', icon]"></font-awesome-icon>
+      </div>
       <div class="slider-box">
         <vue-slider
             v-model="value"
@@ -32,8 +35,14 @@ export default {
     VueSlider,
   },
   props: {
-    'name': String,
-    'caption': String,
+    'caption': {
+      type: String,
+      default: ''
+    },
+    'icon': {
+      type: String,
+      default: ''
+    },
     'min': Number,
     'max': Number,
     'interval': Number,
@@ -130,16 +139,17 @@ export default {
 }
 
 .slider-box {
-  width: 75%;
+  width: 70%;
 }
 
 .slider-caption {
   font-weight: bold;
   width: auto;
-  margin-left: 3%;
+  min-width: 1em;
   line-height: 2;
   display: inline-block;
   vertical-align: middle;
+  margin-right: 0.6vw;
 }
 
 .slider-value {

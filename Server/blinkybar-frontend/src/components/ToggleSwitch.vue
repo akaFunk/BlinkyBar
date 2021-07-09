@@ -1,13 +1,15 @@
 <template>
-  <div>
-    <h3>{{  caption }}</h3>
-    <span class="slider-value">
+  <div class="toggle-container">
+    <div class="toggle-caption">
+      <font-awesome-icon v-if="icon.length>0" :icon="['fas', icon]"></font-awesome-icon>
+    </div>
+    <div class="slider-value">
     <label class="switch">
       <input type="checkbox" :checked="modelValue" @change="update">
       <span class="slider round"></span>
     </label>
     {{ modelValue ? 'On' : 'Off' }}
-    </span>
+    </div>
   </div>
 </template>
 
@@ -16,6 +18,10 @@ export default {
   name: "ToggleSwitch",
   props: {
     caption: String,
+    icon: {
+      type: String,
+      default: ''
+    }
   },
   data() {
     return {
@@ -33,11 +39,25 @@ export default {
 </script>
 
 <style scoped>
+.toggle-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.toggle-caption {
+  font-weight: bold;
+  width: auto;
+  min-width: 1em;
+  line-height: 2;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.6vw;
+}
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 28px;
+  width: 50px;
+  height: 20px;
 }
 
 /* Hide default HTML checkbox */
@@ -63,10 +83,10 @@ export default {
 .slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
+  height: 14px;
+  width: 14px;
   left: 4px;
-  bottom: 4px;
+  bottom: 3px;
   background-color: white;
   -webkit-transition: .4s;
   transition: .4s;
@@ -101,7 +121,7 @@ input:checked + .slider:before {
 .slider-value {
   font-weight: bold;
   width: auto;
-  margin-left: 10px;
+  margin-left: 3px;
   line-height: 2;
   display: inline-block;
   vertical-align: middle;
