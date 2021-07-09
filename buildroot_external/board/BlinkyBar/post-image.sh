@@ -60,6 +60,7 @@ ROOTPATH_TMP="$(mktemp -d)"
 rm -rf "${GENIMAGE_TMP}"
 
 dd if=/dev/zero of=${BINARIES_DIR}/readwrite.ext4 bs=1M count=30
+mke2fs -L data ${BINARIES_DIR}/readwrite.ext4
 
 genimage \
 	--rootpath "${ROOTPATH_TMP}"   \
