@@ -13,6 +13,7 @@
             :interval="interval"
             v-bind="slider_options"
             @drag-end="emitValue"
+            @click="emitValue"
         />
       </div>
       <div class="slider-value">
@@ -114,7 +115,6 @@ export default {
       }
     },
     emitValue() {
-      console.log('Emitting new value: ' + this.value)
       this.$emit('update:modelValue', parseFloat(this.value) / this.factor);
     },
   },
@@ -139,7 +139,7 @@ export default {
 }
 
 .slider-box {
-  width: 70%;
+  width: 65%;
 }
 
 .slider-caption {
@@ -159,12 +159,13 @@ export default {
   line-height: 2;
   display: inline-block;
   vertical-align: middle;
+  text-align: center;
 }
 
 .slider-value input {
   font-size: inherit;
   border: none;
-  width: 2em;
+  width: 3em;
   font-weight: bold;
   text-align: right;
 }

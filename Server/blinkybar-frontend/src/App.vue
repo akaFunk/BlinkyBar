@@ -16,10 +16,14 @@
         <p>{{ progress_msg }}...</p>
       </div>
     </div>
-    <slider-input icon="running" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
-    <slider-input icon="sun" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
+    <slider-input v-if="!isNaN(speed)" icon="running" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
+    <slider-input v-if="!isNaN(brightness)" icon="sun" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
                   :scaling-factor="100"/>
-    <slider-input icon="stopwatch-20" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
+    <slider-input v-if="!isNaN(trigger_delay)" icon="stopwatch-20" v-model="trigger_delay" :min="0" :max="60"
+                  :interval="1" unit="s"/>
+    <slider-input v-if="!isNaN(color_temperature)" icon="thermometer-half" v-model="color_temperature" :min="1000"
+                  :max="10000"
+                  :interval="100" unit="K"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
 
@@ -59,16 +63,18 @@ export default {
     return {
       resultUrl: "/get_image_scaled?fake_param=",
       settingsUrl: "/settings",
-      speed: 0,
-      brightness: 0,
-      trigger_delay: 0,
+      speed: NaN,
+      brightness: NaN,
+      trigger_delay: NaN,
       allow_scaling: true,
+      color_temperature: NaN,
       image_hash: '',
       progress_status: '',
       progress_value: 0,
       progress_percent: 0,
       progress_msg: '',
       timer: setInterval(this.fetchData, 200),
+      lastTime: 0,
     }
   },
   methods: {
@@ -82,6 +88,7 @@ export default {
       this.brightness = data.brightness;
       this.trigger_delay = data.trigger_delay;
       this.allow_scaling = data.allow_scaling;
+      this.color_temperature = data.color_temperature;
       this.image_hash = data.image_hash;
       this.progress_status = data.progress_status;
       this.progress_value = data.progress_value;
@@ -91,22 +98,34 @@ export default {
     update(param, value) {
       console.log(this.settingsUrl + '?' + param + '=' + value);
       fetch(this.settingsUrl + '?' + param + '=' + value);
-    }
+    },
   },
   watch: {
-    speed(newVal) {
-      this.update('speed', newVal);
+    speed(newVal, oldVal) {
+      if (!isNaN(oldVal)) {
+        this.update('speed', newVal);
+      }
     },
-    brightness(newVal) {
-      this.update('brightness', newVal);
+    brightness(newVal, oldVal) {
+      if (!isNaN(oldVal)) {
+        this.update('brightness', newVal);
+      }
     },
-    trigger_delay(newVal) {
-      this.update('trigger_delay', newVal);
+    trigger_delay(newVal, oldVal) {
+      if (!isNaN(oldVal)) {
+        this.update('trigger_delay', newVal);
+      }
+    },
+    color_temperature(newVal, oldVal) {
+      if (!isNaN(oldVal)) {
+        this.update('color_temperature', newVal);
+      }
     },
     allow_scaling(newVal) {
       this.update('allow_scaling', newVal);
     },
-  },
+  }
+  ,
   created() {
     this.fetchData();
   }
