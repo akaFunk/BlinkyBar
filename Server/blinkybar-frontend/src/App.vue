@@ -26,6 +26,7 @@
                   :interval="100" unit="K"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
+    <button class="push-btn" @click="trigger"><font-awesome-icon :icon="['fas','play']" /> Play</button>
 
     <hr/>
     <h3>Debug info</h3>
@@ -63,6 +64,7 @@ export default {
     return {
       resultUrl: "/get_image_scaled?fake_param=",
       settingsUrl: "/settings",
+      triggerCmd: "/trigger",
       speed: NaN,
       brightness: NaN,
       trigger_delay: NaN,
@@ -109,6 +111,10 @@ export default {
       this.blockUpdate = true;
       this.updateQueryList[param] = value;
     },
+    async trigger() {
+      let url = new URL(document.location.href + this.triggerCmd);
+      await fetch(url);
+    },
   },
   watch: {
     speed(newVal, oldVal) {
@@ -134,8 +140,7 @@ export default {
     allow_scaling(newVal) {
       this.update('allow_scaling', newVal);
     },
-  }
-  ,
+  },
   created() {
     this.updateSettings();
   }
@@ -162,5 +167,29 @@ export default {
 
 img {
   image-rendering: pixelated;
+}
+
+.push-btn {
+  background-color: #9cd5ff;
+  border-radius: 3px;
+  border: 1px solid #0b0e07;
+  display: inline-block;
+  cursor: pointer;
+  color: #000000;
+  font-size: 15px;
+  padding: 9px 23px;
+  margin-top: 2vh;
+  text-decoration: none;
+  text-shadow: 0 1px 0 #cddeff;
+  width: 100%;
+}
+
+.push-btn:hover {
+  background-color: #69c1ff;
+}
+
+.push-btn:active {
+  position: relative;
+  top: 1px;
 }
 </style>
