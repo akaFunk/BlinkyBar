@@ -26,8 +26,10 @@
                   :interval="100" unit="K"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
-    <button class="push-btn" @click="trigger"><font-awesome-icon :icon="['fas','play']" /> Play</button>
-
+    <button class="push-btn" @click="trigger">
+      <font-awesome-icon :icon="['fas','play']"/>
+      Play
+    </button>
     <hr/>
     <h3>Debug info</h3>
     Speed: {{ speed }} <br/>
@@ -62,9 +64,9 @@ export default {
   },
   data: function () {
     return {
-      resultUrl: "/get_image_scaled?fake_param=",
-      settingsUrl: "/settings",
-      triggerCmd: "/trigger",
+      resultUrl: "get_image_scaled?fake_param=",
+      settingsUrl: "settings",
+      triggerCmd: "trigger",
       speed: NaN,
       brightness: NaN,
       trigger_delay: NaN,
@@ -99,7 +101,7 @@ export default {
       this.progress_percent = printf('%.1f', this.progress_value * 100);
 
       // If blockUpdate is true, one of the user inputs has been modified and we don't want to overwrite that with an old value
-      if(!this.blockUpdate) {
+      if (!this.blockUpdate) {
         this.speed = data.speed;
         this.brightness = data.brightness;
         this.trigger_delay = data.trigger_delay;
