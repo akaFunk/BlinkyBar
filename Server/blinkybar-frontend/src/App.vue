@@ -73,31 +73,42 @@ export default {
       progress_value: 0,
       progress_percent: 0,
       progress_msg: '',
-      timer: setInterval(this.fetchData, 200),
+      timer: setInterval(this.updateSettings, 200),
+      updateQueryList: {},
+      blockUpdate: false,
       lastTime: 0,
     }
   },
   methods: {
-    fetchData() {
-      fetch(this.settingsUrl)
-          .then(response => response.json())
-          .then(data => this.processNewData(data));
+    async updateSettings() {
+      let url = new URL(document.location.href + this.settingsUrl);
+      Object.keys(this.updateQueryList).forEach(key => url.searchParams.append(key, this.updateQueryList[key]))
+      this.updateQueryList = {}
+      let resp = await fetch(url);
+      let data = await resp.json();
+      this.processNewData(data);
+      this.blockUpdate = false;
     },
     processNewData(data) {
-      this.speed = data.speed;
-      this.brightness = data.brightness;
-      this.trigger_delay = data.trigger_delay;
-      this.allow_scaling = data.allow_scaling;
-      this.color_temperature = data.color_temperature;
       this.image_hash = data.image_hash;
       this.progress_status = data.progress_status;
       this.progress_value = data.progress_value;
       this.progress_msg = data.progress_msg;
       this.progress_percent = printf('%.1f', this.progress_value * 100);
+
+      // If blockUpdate is true, one of the user intputs has been modified and we don't want to overwrite that with an old value
+      if(this.blockUpdate) {
+        return;
+      }
+      this.speed = data.speed;
+      this.brightness = data.brightness;
+      this.trigger_delay = data.trigger_delay;
+      this.allow_scaling = data.allow_scaling;
+      this.color_temperature = data.color_temperature;
     },
     update(param, value) {
-      console.log(this.settingsUrl + '?' + param + '=' + value);
-      fetch(this.settingsUrl + '?' + param + '=' + value);
+      this.blockUpdate = true;
+      this.updateQueryList[param] = value;
     },
   },
   watch: {
@@ -127,7 +138,7 @@ export default {
   }
   ,
   created() {
-    this.fetchData();
+    this.updateSettings();
   }
 }
 </script>
