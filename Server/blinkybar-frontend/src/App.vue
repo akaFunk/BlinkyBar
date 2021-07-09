@@ -96,15 +96,14 @@ export default {
       this.progress_msg = data.progress_msg;
       this.progress_percent = printf('%.1f', this.progress_value * 100);
 
-      // If blockUpdate is true, one of the user intputs has been modified and we don't want to overwrite that with an old value
-      if(this.blockUpdate) {
-        return;
+      // If blockUpdate is true, one of the user inputs has been modified and we don't want to overwrite that with an old value
+      if(!this.blockUpdate) {
+        this.speed = data.speed;
+        this.brightness = data.brightness;
+        this.trigger_delay = data.trigger_delay;
+        this.allow_scaling = data.allow_scaling;
+        this.color_temperature = data.color_temperature;
       }
-      this.speed = data.speed;
-      this.brightness = data.brightness;
-      this.trigger_delay = data.trigger_delay;
-      this.allow_scaling = data.allow_scaling;
-      this.color_temperature = data.color_temperature;
     },
     update(param, value) {
       this.blockUpdate = true;
@@ -158,6 +157,7 @@ export default {
 
 .image-box {
   text-align: center;
+  min-height: 13vh;
 }
 
 img {
