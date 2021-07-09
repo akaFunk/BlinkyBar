@@ -1,9 +1,9 @@
 <template>
   <div class="app">
-    <slider-input caption="Speed" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
-    <slider-input caption="Brightness" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
+    <slider-input caption="&#x1F3c3;" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
+    <slider-input caption="&#x1F506;" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
                   :scaling-factor="100"/>
-    <slider-input caption="Trigger delay" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
+    <slider-input caption="&#9201;" v-model="trigger_delay" :min="0" :max="60" :interval="1" unit="s"/>
     <toggle-switch caption="Allow scaling" v-model="allow_scaling"/>
     <file-uploader upload-url="/set_image"/>
 

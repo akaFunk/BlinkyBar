@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h3>{{ caption }}</h3>
     <div class="slider-container">
+      <div class="slider-caption">{{ caption }}</div>
       <div class="slider-box">
         <vue-slider
             v-model="value"
@@ -131,6 +131,15 @@ export default {
 
 .slider-box {
   width: 75%;
+}
+
+.slider-caption {
+  font-weight: bold;
+  width: auto;
+  margin-left: 3%;
+  line-height: 2;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .slider-value {
