@@ -54,12 +54,14 @@ class PacketRouter:
         self.ser_port_name_bottom = ser_port_name_bottom
         self.ser_port_top = None
         self.ser_port_bottom = None
+        self.system_error_msg = ""
 
         # Open the ports
         try:
             self.ser_port_top = Serial(port=ser_port_name_top, baudrate=1000000, timeout=0.5, write_timeout=0.5)
         except serialutil.SerialException:
             log_error("Unable to open serial port")
+            self.system_error_msg = f"Unable to open serial port {ser_port_name_top}"
             return
         log_debug(f"Opened {ser_port_name_top} for up link")
 
@@ -67,6 +69,7 @@ class PacketRouter:
             self.ser_port_bottom = Serial(port=ser_port_name_bottom, baudrate=1000000, timeout=0.5, write_timeout=0.5)
         except FileNotFoundError:
             log_error("Unable to open serial port")
+            self.system_error_msg = f"Unable to open serial port {ser_port_name_bottom}"
             return
         log_debug(f"Opened {ser_port_name_bottom} for down link")
 

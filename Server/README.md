@@ -34,7 +34,8 @@ All queries will return a JSON string with the following structure:
     "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
     "progress_status": "noimage",
     "prograss_value": 0.0,
-    "progress_msg": ""
+    "progress_msg": "",
+    "system_error_msg": ""
 }
 ```
 
@@ -49,6 +50,8 @@ Additionally the structure holds a few variables, indicating the state of the sy
 -   **prograss_value** is a float value between 0 and 1. It can be used to display a loading bar while the an image is beeing processed or played. It is only valid if "progress_status" is either "processing" or "playing".
 
 -   **progress_msg** contains a more detailed message about what is currently happening, especially during the image processing. It is only valid if "progress_status" is either "processing" or "playing".
+
+-   **system_error_msg** may contain a system critical error message. If this string is not empty, the BlinkyBar will not function as expected and the message should be shown to the user.
 
 ### set_image
 
