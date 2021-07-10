@@ -2,6 +2,7 @@
 #include <util/delay.h>
 #include "uart.h"
 #include "fifo.h"
+#include "ws2812b.h"
 #include <avr/interrupt.h>
 
 #define MESSAGE_MAGIC            0xab    // Magic word used to mark the beginning of a message
@@ -18,15 +19,16 @@
 #define MESSAGE_TYPE_NACK        0xf1    // NACK last message, len=0
 
 #define MESSAGE_ADDR_BROADCAST   0xff   // Broadcast address, interprete and redirect to the next one
-#define MESSAGE_ADDR_HOST        0xfe   // Message to the host, redirect to the next one
+#define MESSAGE_ADDR_HOST        0xfe   // Host address
 
 #define MESSAGE_MAX_DATA_SIZE    256
 
 uint8_t module_addr = 0x00;  // Address of this module
 
 // Examples:
-// Set address: ab02ff00010001
-// Ping:        ab10ff010000
+// Set address 0 -> 1: ab02fe00010001
+// Ping 1:             ab10fe010000
+// Ping 0:             ab10fe000000
 
 typedef struct
 {
@@ -54,22 +56,29 @@ void transmit_response(message_t*msg, uint8_t success);
 
 int main()
 {
-    message_t msg;  // message buffer
-
+    ws2812b_init();
     uart_init();
     sei();
 
-    // Echo test
-    /*while(1)
+    // Send test data to LEDs
+    /*uint8_t led_data[3*8];
+    for(uint8_t k = 0; k < 8; k++)
     {
-        uint8_t data = fifo_popc_block(&uart_in_fifo);
-        uart_putc(data);
-    }*/
-
-    DDRB |= (1<<5);
+        led_data[k*3+0] = 0;
+        led_data[k*3+1] = 85;
+        led_data[k*3+2] = 170;
+    }
     while(1)
     {
-        PORTB ^= (1<<5);
+        ws2812b_send_column(led_data, 8);
+        _delay_ms(5);
+        for(uint8_t k = 0; k < 3*8; k++)
+            led_data[k]++;
+    }*/
+
+    message_t msg;  // message buffer
+    while(1)
+    {
 
         // Wait for the magic word
         while(fifo_popc_block(&uart_in_fifo) != MESSAGE_MAGIC);

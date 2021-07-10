@@ -11,13 +11,17 @@ To build the sources (there is also a pre-compiled hex file) type
 $ make
 ```
 
-After that you should modify the Makefile to fit your prommer. By default an AVR ISP mkII is expected. See
+After that you should modify the Makefile to fit your prommer. By default an Atmel ICE is expected, connected to the ISP header. See
 ```sh
 $ avrdude -c help
 ```
 for a list of supported prommers. After doing that flash each module with:
 ```sh
-$ make install
+$ make flash
+```
+You may also want to burn the fuses:
+```sh
+$ make fuses
 ```
 If you get some error message telling you that he was not able to access your prommer, your user probably doesn't have the right permission to access it. Use your favorite internet search engine to solve this problem, the keywords you are looking for are the name of your prommer, avrdude and udev (you need to add udev rules for it). If you are lazy, just run the install command with root privilegs.
 
