@@ -83,10 +83,10 @@ class PacketRouter:
         self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
 
         # DEBUG: Send a test message
-        while True:
-            msg = Message(MESSAGE_TYPE_PING)
-            self.send_message_retry(0, msg, 10)
-            time.sleep(1)
+        #while True:
+        #    msg = Message(MESSAGE_TYPE_PING)
+        #    self.send_message_retry(0, msg, 10)
+        #    time.sleep(1)
     
     def init_modules(self):
         cherrypy.log("Initializing modules...")
