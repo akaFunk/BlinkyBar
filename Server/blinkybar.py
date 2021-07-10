@@ -17,8 +17,27 @@ from colortemperaturetable import *
 
 
 # Format cherrypy logging with ms output
-cherrypy._cplogging.LogManager.time = lambda self : \
-     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:23]
+cherrypy._cplogging.LogManager.time = lambda self : "" # Hack that cherrypy will not add a date/time to the message
+new_formatter = logging.Formatter("%(asctime)s %(levelname)s:%(message)s")
+for h in cherrypy.log.error_log.handlers:
+    h.setFormatter(new_formatter)
+cherrypy.log.error_log.setLevel(logging.DEBUG)
+
+
+def log_fatal(msg):
+    cherrypy.log(msg, severity=logging.FATAL)
+
+def log_error(msg):
+    cherrypy.log(msg, severity=logging.ERROR)
+
+def log_warn(msg):
+    cherrypy.log(msg, severity=logging.WARN)
+
+def log_info(msg):
+    cherrypy.log(msg, severity=logging.INFO)
+
+def log_debug(msg):
+    cherrypy.log(msg, severity=logging.DEBUG)
 
 
 # The packet router will abstract the two strings of modules and the module orientation. It will
@@ -29,56 +48,127 @@ cherrypy._cplogging.LogManager.time = lambda self : \
 # When you send data to one of the modules, PacketRouter will automatically mirror the data for
 # the upper bar.
 class PacketRouter:
-    def __init__(self, ser_port_name_up=None, ser_port_name_down=None):
+    def __init__(self, ser_port_name_top=None, ser_port_name_bottom=None):
         # Initialize serial ports
-        self.ser_port_name_up = ser_port_name_up
-        self.ser_port_name_down = ser_port_name_down
-        self.ser_port_up = None
+        self.ser_port_name_top = ser_port_name_top
+        self.ser_port_name_bottom = ser_port_name_bottom
+        self.ser_port_top = None
+        self.ser_port_bottom = None
+
+        # Open the ports
         try:
-            self.ser_port_up = Serial(port=ser_port_name_up, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+            self.ser_port_top = Serial(port=ser_port_name_top, baudrate=1000000, timeout=0.5, write_timeout=0.5)
         except serialutil.SerialException:
-            cherrypy.log("Unable to open serial port")
-        cherrypy.log(f"Opened {ser_port_name_up} for up link")
-        self.ser_port_down = None
+            log_error("Unable to open serial port")
+            return
+        log_debug(f"Opened {ser_port_name_top} for up link")
+
         try:
-            self.ser_port_down = Serial(port=ser_port_name_down, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+            self.ser_port_bottom = Serial(port=ser_port_name_bottom, baudrate=1000000, timeout=0.5, write_timeout=0.5)
         except FileNotFoundError:
-            cherrypy.log("Unable to open serial port")
-        cherrypy.log(f"Opened {ser_port_name_down} for down link")
+            log_error("Unable to open serial port")
+            return
+        log_debug(f"Opened {ser_port_name_bottom} for down link")
+
+        # TODO: Remove later, only for debugging with Arduino board
+        # Wait for Arduino board reset
+        log_debug("Waiting for arduino to reset...")
+        time.sleep(3)
         
-        # Find modules
+        # TODO: Find modules
         self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
-        self.module_port_addr_mirror.append({"port": self.ser_port_up, "addr": 0, "mirror": False}) # Add a fake module instead
+        self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
 
         # DEBUG: Send a test message
-        #while True:
-        #    msg = Message(MESSAGE_TYPE_PING)
-        #    self.send_message(0, msg)
-        #    time.sleep(1)
+        while True:
+            msg = Message(MESSAGE_TYPE_PING)
+            self.send_message_retry(0, msg, 10)
+            time.sleep(1)
     
     def init_modules(self):
         cherrypy.log("Initializing modules...")
+    
+    def send_message_retry(self, module_nr: int, msg: Message, expect_ack = True, retry_count: int = 1):
+        for _ in range(retry_count):
+            if self.send_message(module_nr, msg, expect_ack):
+                return True
+            log_error("Resending message...")
+        log_error("Message was not ack'd after {retry_count} retries, giving up")
+        return False
 
-    def send_message(self, module_nr: int, message: Message):
+    def send_message(self, module_nr: int, msg: Message, expect_ack = True):
         # Convert module_nr to the serial port and the module address
         port = self.module_port_addr_mirror[module_nr]["port"]
+        if port is None:
+            cherrypy.log("Unable to send message: Port not opened")
+            return False
         addr = self.module_port_addr_mirror[module_nr]["addr"]
-        message.dst = addr
-        port.write(message.to_bytes())
+        msg.dst = addr
+        
+        # Make sure input buffer is empty
+        port.reset_input_buffer()
+
+        # Send message
+        port.write(msg.to_bytes())
+        log_debug("Message sent")
+
+        # If not ACK is expected, we are done at this point
+        if not expect_ack:
+            return True
 
         # Wait for ACK
-        # TODO: Wait for ACK - when sending to broadcast, we don't expect an ACK?
+        ans = self.get_message(port)
+        if ans is None:
+            return False
+        
+        # Check answer
+        if ans.type != MESSAGE_TYPE_ACK:
+            log_error("Got message, but no ACK")
+            return False
+        
+        # Got an ACK
+        return True
 
-        # Wait for magic word
+    def get_message(self, port: Serial):
+        log_debug("Receiving message")
+        # Wait for magic byte
         while True:
             data = port.read(1)
             if len(data) != 1:
-                cherrypy.log(f"Lost sync, got {data}")
-                return False
-            if data[0] == MESSAGE_MAGIC:
+                log_error("Failed to get magic byte from module: Timeout")
+                return None
+            if data[0] != MESSAGE_MAGIC:
+                log_error(f"Lost sync, got {data} instead of {MESSAGE_MAGIC}")
+                continue
+            else:
                 break
-            # If this was not the magic word, get the next byte
-            time.sleep(0.001)
+        # Magic byte received
+        ans = Message()
+        ans.magic = MESSAGE_MAGIC
+        log_debug("Got magic byte")
+
+        # Read header
+        header = port.read(5)
+        if len(header) != 5:
+            log_error("Failed to read message header from module: Timeout")
+            return None
+        ans.type = header[0]
+        ans.src = header[1]
+        ans.dst = header[2]
+        ans.len = header[4]*256 + header[3]
+        log_debug("Got header")
+        if ans.len > MESSAGE_MAX_DATA_SIZE:
+            log_error(f"Got message header with too high len value of {ans.len}")
+            return None
+        
+        # Read the data
+        ans.data = port.read(ans.len)
+        if len(ans.data) != ans.len:
+            log_error(f"Failed to receive {ans.len} bytes of data, got only {len(ans.data)} bytes")
+            return None
+        
+        # Answer is complete
+        return ans
     
     def send_image_data(self, module_nr: int, img_data: np.array):
         # Mirror image data if required
@@ -112,8 +202,12 @@ class ModuleController(Thread):
             "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
             "progress_status": "noimage",
             "progress_value": 0.0,
-            "progress_msg": ""
+            "progress_msg": "",
+            "system_error_msg": ""
         }
+
+        # The system error message may have been set during initialization of the packet router
+        self.led_settings["system_error_msg"] = self.router.system_error_msg
 
         # Initialize the modules
         self.init_modules()

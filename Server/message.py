@@ -21,7 +21,7 @@ MESSAGE_TYPE_ACK         = 0xf0
 MESSAGE_TYPE_NACK        = 0xf1
 
 class Message:
-    def __init__(self, type, data = np.array([], dtype=np.uint8), dst = MESSAGE_ADDR_HOST):
+    def __init__(self, type = MESSAGE_TYPE_NACK, data = np.array([], dtype=np.uint8), dst = MESSAGE_ADDR_HOST):
         self.magic = MESSAGE_MAGIC
         self.type = type
         self.src = MESSAGE_ADDR_HOST
@@ -37,5 +37,4 @@ class Message:
         ret += bytes([len(self.data)%256])
         ret += bytes([round(len(self.data)/256)])
         ret += bytes(self.data.tobytes())
-        print(ret)
         return ret
