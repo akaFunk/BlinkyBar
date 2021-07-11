@@ -24,6 +24,7 @@
     <slider-input v-if="!isNaN(color_temperature)" icon="thermometer-half" v-model="color_temperature" :min="1000"
                   :max="10000"
                   :interval="100" unit="K"/>
+    <toggle-switch caption="Mirror" icon="arrows-alt-h" v-model="mirror"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
 
@@ -32,6 +33,7 @@
     Speed: {{ speed }} <br/>
     Brightness: {{ brightness }}<br/>
     Trigger delay: {{ trigger_delay }}<br/>
+    Mirror: {{ mirror }}<br/>
     Allow scaling: {{ allow_scaling }}<br/>
     Progress status: {{ progress_status }}<br/>
     Progress value: {{ progress_value }}<br/>
@@ -66,6 +68,7 @@ export default {
       speed: NaN,
       brightness: NaN,
       trigger_delay: NaN,
+      mirror: false,
       allow_scaling: true,
       color_temperature: NaN,
       image_hash: '',
@@ -103,6 +106,7 @@ export default {
       this.speed = data.speed;
       this.brightness = data.brightness;
       this.trigger_delay = data.trigger_delay;
+      this.mirror = data.mirror;
       this.allow_scaling = data.allow_scaling;
       this.color_temperature = data.color_temperature;
     },
@@ -131,6 +135,9 @@ export default {
       if (!isNaN(oldVal)) {
         this.update('color_temperature', newVal);
       }
+    },
+    mirror(newVal) {
+      this.update('mirror', newVal);
     },
     allow_scaling(newVal) {
       this.update('allow_scaling', newVal);
