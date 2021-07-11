@@ -188,6 +188,7 @@ class ModuleController(Thread):
         self.command_queue = command_queue
         self.router = PacketRouter(config["port_up"], config["port_down"])
         self.uploading_image = False
+        self.playing = False
         self.image = Image.open("image.png")
         self.progress_extra_steps = 0
         self.height = 120 # TODO: This should come from the stick
@@ -295,12 +296,37 @@ class ModuleController(Thread):
                 # TODO: Send new repeat value to microcontroller
                 log_debug(f"Sent repeat value of {self.led_settings['repeat']} to modules")
             elif command_data["command"] == "trigger":
+                self.led_settings["progress_status"] = "playing"
+                self.led_settings["progress_value"] = 0.0
+                self.playing = True
                 delay = self.led_settings['trigger_delay']
                 cherrypy.log(f"Got trigger command, will spleep {delay} s")
-                if delay != 0.0:
-                    time.sleep(delay)
+                slept = 0.0
+                while slept < self.led_settings['trigger_delay']:
+                    time.sleep(0.05)
+                    slept += 0.05
+                    self.led_settings["progress_value"] = slept/delay
+                    if not self.playing:
+                        self.led_settings["progress_status"] = "ready"
+                        # TODO: Reset progress_value
+                        return
+                self.led_settings["progress_value"] = 0.0
                 # TODO: Send trigger to microcontroller
                 cherrypy.log(f"Triggered")
+
+                # Fake loading bar for playback
+                # TODO: Find something how we can know the current state without estimating it
+                for k in range(10):
+                    self.led_settings["progress_value"] = k/9.0
+                    time.sleep(1)
+                    if not self.playing:
+                        self.led_settings["progress_status"] = "ready"
+                        # TODO: Reset progress_value
+                        return
+                self.led_settings["progress_status"] = "ready"
+                self.led_settings["progress_value"] = 0.0
+                self.playing = False
+
 
     def init_modules(self):
         self.command_queue.put({"command": "init_modules"})
@@ -365,8 +391,13 @@ class ModuleController(Thread):
         # Update the image
         self.update_image()
     
-    def trigger(self, delay):
-        self.command_queue.put({"command": "trigger"})
+    def trigger(self):
+        if self.playing:
+            # Stop current playback
+            self.playing = True
+        else:
+            # Start playback
+            self.command_queue.put({"command": "trigger"})
 
 
 class WebServer(object):
@@ -505,6 +536,7 @@ class WebServer(object):
     
     @cherrypy.expose
     def trigger(self):
+        self.controller.trigger()
         return ujson.dumps({"success": True})
 
 if __name__ == '__main__':
