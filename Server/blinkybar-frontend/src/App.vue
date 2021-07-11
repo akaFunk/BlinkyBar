@@ -25,6 +25,7 @@
                   :max="10000"
                   :interval="100" unit="K"/>
     <toggle-switch caption="Mirror" icon="arrows-alt-h" v-model="mirror"/>
+    <toggle-switch caption="Repeat" icon="redo" v-model="repeat"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
     <button class="push-btn" @click="trigger">
@@ -37,6 +38,7 @@
     Brightness: {{ brightness }}<br/>
     Trigger delay: {{ trigger_delay }}<br/>
     Mirror: {{ mirror }}<br/>
+    Repeat: {{ repeat }}<br/>
     Allow scaling: {{ allow_scaling }}<br/>
     Progress status: {{ progress_status }}<br/>
     Progress value: {{ progress_value }}<br/>
@@ -73,6 +75,7 @@ export default {
       trigger_delay: NaN,
       mirror: false,
       allow_scaling: true,
+      repeat: false,
       color_temperature: NaN,
       image_hash: '',
       progress_status: '',
@@ -108,6 +111,7 @@ export default {
         this.brightness = data.brightness;
         this.trigger_delay = data.trigger_delay;
         this.mirror = data.mirror;
+        this.repeat = data.repeat;
         this.allow_scaling = data.allow_scaling;
         this.color_temperature = data.color_temperature;
       }
@@ -144,6 +148,9 @@ export default {
     },
     mirror(newVal) {
       this.update('mirror', newVal);
+    },
+    repeat(newVal) {
+      this.update('repeat', newVal);
     },
     allow_scaling(newVal) {
       this.update('allow_scaling', newVal);
