@@ -27,4 +27,4 @@ U3 ,1,"TPS563200","Package_TO_SOT_SMD:SOT-23-6","http://www.ti.com/lit/ds/symlin
 U5 ,1,"ATmega328P-AU","Package_QFP:TQFP-32_7x7mm_P0.8mm","http://ww1.microchip.com/downloads/en/DeviceDoc/ATmega328_P%20AVR%20MCU%20with%20picoPower%20Technology%20Data%20Sheet%2040001984A.pdf","ATmega328P-AU","Microchip"
 U7 U8 ,2,"74LVC1G34","Package_TO_SOT_SMD:SOT-353_SC-70-5","http://www.ti.com/lit/sg/scyt129e/scyt129e.pdf","74LVC1G34GW,125","Nexperia"
 U9 ,1,"74AHC1G125","Package_TO_SOT_SMD:SOT-23-5","http://www.ti.com/lit/sg/scyt129e/scyt129e.pdf","SN74AHC1G125DBVR","Texas Instruments"
-Y1 ,1,"16MHz","Crystal:Crystal_SMD_HC49-SD","~","C16000J119","ECEC"
+Y1 ,1,"8MHz","Crystal:Crystal_SMD_HC49-SD","~","C08000J060","ECEC"
