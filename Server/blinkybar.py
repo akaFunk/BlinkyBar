@@ -102,13 +102,10 @@ class PacketRouter:
         port_list = [self.ser_port_top, self.ser_port_bottom]
         port_name_list = ["top", "bottom"]
         module_cnt = [0, 0]
+        mirror = [True, False]
         for p in range(len(port_list)):
             port = port_list[p]
             port_name = port_name_list[p]
-            if p == 0:
-                mirror = True
-            else:
-                mirror = False
             if port is None:
                 log_error(f"Skipping detection of modules on {port_name} port as it is not opened")
                 continue
@@ -116,7 +113,7 @@ class PacketRouter:
             while True:
                 if not self.send_addr(port, addr):
                     break
-                self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror})
+                self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
                 addr += 1
             log_debug(f"Found {addr} modules on {port_name} port")
 
