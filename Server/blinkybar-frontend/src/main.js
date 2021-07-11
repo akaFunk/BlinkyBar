@@ -5,6 +5,8 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import {
     faExpandAlt,
     faPlay,
+    faStop,
+    faTimes,
     faRunning,
     faStopwatch20,
     faSun,
@@ -20,6 +22,8 @@ library.add(faRunning)
 library.add(faExpandAlt)
 library.add(faThermometerHalf)
 library.add(faPlay)
+library.add(faStop)
+library.add(faTimes)
 library.add(faArrowsAltH)
 library.add(faRedo)
 

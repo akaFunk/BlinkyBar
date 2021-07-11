@@ -29,8 +29,15 @@
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
     <button class="push-btn" @click="trigger">
-      <font-awesome-icon :icon="['fas','play']"/>
-      Play
+      <template v-if="progress_status == 'ready'">
+        <font-awesome-icon :icon="['fas','play']"/> Play
+      </template>
+      <template v-else-if="progress_status == 'playing'">
+        <font-awesome-icon :icon="['fas','stop']"/> Stop
+      </template>
+      <template v-else>
+        <font-awesome-icon :icon="['fas','times']"/>
+      </template>
     </button>
     <hr/>
     <h3>Debug info</h3>
@@ -122,6 +129,9 @@ export default {
       this.updateQueryList[param] = value;
     },
     async trigger() {
+      if(this.progress_status != 'ready' && this.progress_status != 'playing') {
+        return;
+      }
       let url = new URL(document.location.href + this.triggerCmd);
       await fetch(url);
     },
