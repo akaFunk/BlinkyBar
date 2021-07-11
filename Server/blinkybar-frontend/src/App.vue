@@ -69,6 +69,7 @@ export default {
   data: function () {
     return {
       resultUrl: "/get_image_scaled?fake_param=",
+      triggerCmd: "/trigger",
       settingsUrl: "/settings",
       speed: NaN,
       brightness: NaN,
