@@ -21,7 +21,7 @@ cherrypy._cplogging.LogManager.time = lambda self : "" # Hack that cherrypy will
 new_formatter = logging.Formatter("%(asctime)s %(levelname)s:%(message)s")
 for h in cherrypy.log.error_log.handlers:
     h.setFormatter(new_formatter)
-cherrypy.log.error_log.setLevel(logging.DEBUG)
+cherrypy.log.error_log.setLevel(logging.NOTSET)
 
 
 def log_fatal(msg):
@@ -83,10 +83,10 @@ class PacketRouter:
         self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
 
         # DEBUG: Send a test message
-        #while True:
-        #    msg = Message(MESSAGE_TYPE_PING)
-        #    self.send_message_retry(0, msg, 10)
-        #    time.sleep(1)
+        while True:
+            msg = Message(MESSAGE_TYPE_PING)
+            self.send_message_retry(0, msg, 10)
+            time.sleep(1)
     
     def init_modules(self):
         cherrypy.log("Initializing modules...")
@@ -203,6 +203,7 @@ class ModuleController(Thread):
             "trigger_delay": 1.0,
             "mirror": False,
             "allow_scaling": True,
+            "repeat": False,
             "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
             "progress_status": "noimage",
             "progress_value": 0.0,
@@ -290,6 +291,9 @@ class ModuleController(Thread):
             elif command_data["command"] == "set_speed":
                 # TODO: Send new speed value to microcontroller
                 cherrypy.log(f"Set speed to {self.led_settings['speed']} m/s")
+            elif command_data["command"] == "set_repeat":
+                # TODO: Send new repeat value to microcontroller
+                log_debug(f"Sent repeat value of {self.led_settings['repeat']} to modules")
             elif command_data["command"] == "trigger":
                 delay = self.led_settings['trigger_delay']
                 cherrypy.log(f"Got trigger command, will spleep {delay} s")
@@ -351,6 +355,11 @@ class ModuleController(Thread):
         # Update the image
         self.update_image()
     
+    def set_repeat(self, repeat):
+        self.led_settings["repeat"] = repeat
+        # Send repeat value to modules
+        self.command_queue.put({"command": "set_repeat"})
+    
     def set_allow_scaling(self, allow_scaling):
         self.led_settings["allow_scaling"] = allow_scaling
         # Update the image
@@ -374,47 +383,48 @@ class WebServer(object):
         return open(os.path.join(static_dir, "index.html"))
     
     @cherrypy.expose
-    def settings(self, speed=None, brightness=None, trigger_delay=None, mirror=None, allow_scaling=None, color_temperature=None):
+    def settings(self, speed=None, brightness=None, trigger_delay=None, mirror=None, allow_scaling=None, repeat=None, color_temperature=None):
         # Create a copy of the current settings dict
         retval = dict(self.controller.led_settings)
-        retval.update(dict({"success:": False, "error_msg": ""}))
+        retval["success"] = False
+        retval["error_msg"] = ""
 
         # Check all the variables first
         if speed is not None:
             try:
                 speed = float(speed)
             except ValueError:
-                retval.update(dict({"error_msg": "Speed is not a float"}))
+                retval["error_msg"] = "Speed is not a float"
                 return ujson.dumps(retval, indent=4)
             if speed < 0.1 or speed > 100:
-                retval.update(dict({"error_msg": "Speed is out of range"}))
+                retval["error_msg"] = "Speed is out of range"
                 return ujson.dumps(retval, indent=4)
         if brightness is not None:
             try:
                 brightness = float(brightness)
             except ValueError:
-                retval.update(dict({"error_msg": "Brightness is not a float"}))
+                retval["error_msg"] = "Brightness is not a float"
                 return ujson.dumps(retval, indent=4)
             if brightness < 0.1 or brightness > 1.0:
-                retval.update(dict({"error_msg": "Brightness is out of range"}))
+                retval["error_msg"] = "Brightness is out of range"
                 return ujson.dumps(retval, indent=4)
         if color_temperature is not None:
             try:
                 color_temperature = float(color_temperature)
             except ValueError:
-                retval.update(dict({"error_msg": "Color temperature is not a float"}))
+                retval["error_msg"] = "Color temperature is not a float"
                 return ujson.dumps(retval, indent=4)
             if color_temperature < 1000 or color_temperature > 10000:
-                retval.update(dict({"error_msg": "Color temperature is out of range"}))
+                retval["error_msg"] = "Color temperature is out of range"
                 return ujson.dumps(retval, indent=4)
         if trigger_delay is not None:
             try:
                 trigger_delay = float(trigger_delay)
             except ValueError:
-                retval.update(dict({"error_msg": "Trigger delay is not a float"}))
+                retval["error_msg"] = "Trigger delay is not a float"
                 return ujson.dumps(retval, indent=4)
             if trigger_delay < 0 or trigger_delay > 1000.0:
-                retval.update(dict({"error_msg": "Trigger delay is out of range"}))
+                retval["error_msg"] = "Trigger delay is out of range"
                 return ujson.dumps(retval, indent=4)
         if mirror is not None:
             if mirror.lower() in ['true', '1',]:
@@ -422,7 +432,15 @@ class WebServer(object):
             elif mirror.lower() in ['false', '0',]:
                 mirror = False
             else:
-                retval.update(dict({"error_msg": "mirror is out of range"}))
+                retval["error_msg"] = "mirror is out of range"
+                return ujson.dumps(retval, indent=4)
+        if repeat is not None:
+            if repeat.lower() in ['true', '1',]:
+                repeat = True
+            elif repeat.lower() in ['false', '0',]:
+                repeat = False
+            else:
+                retval["error_msg"] = "repeat is out of range"
                 return ujson.dumps(retval, indent=4)
         if allow_scaling is not None:
             if allow_scaling.lower() in ['true', '1',]:
@@ -430,7 +448,7 @@ class WebServer(object):
             elif allow_scaling.lower() in ['false', '0',]:
                 allow_scaling = False
             else:
-                retval.update(dict({"error_msg": "allow_scaling is out of range"}))
+                retval["error_msg"] = "allow_scaling is out of range"
                 return ujson.dumps(retval, indent=4)
 
         # All values seem to be ok, update the state
@@ -449,12 +467,15 @@ class WebServer(object):
         if mirror is not None:
             self.controller.set_mirror(mirror)
         
+        if repeat is not None:
+            self.controller.set_repeat(repeat)
+        
         if allow_scaling is not None:
             self.controller.set_allow_scaling(allow_scaling)
 
         # Get the current settings and return them
         retval = dict(self.controller.led_settings)
-        retval.update(dict({"success:": True, "error_msg": ""}))
+        retval["success"] = True
         return ujson.dumps(retval, indent=4)
 
     # Upload an image as png/jpg/gif/... in post data
