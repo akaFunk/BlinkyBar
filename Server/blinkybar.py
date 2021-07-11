@@ -78,36 +78,100 @@ class PacketRouter:
         log_debug("Waiting for arduino to reset...")
         time.sleep(3)
         
-        # TODO: Find modules
-        self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
-        self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
+        # Detect modules
+        self.find_modules()
 
         # DEBUG: Send a test message
-        while True:
-            msg = Message(MESSAGE_TYPE_PING)
-            self.send_message_retry(0, msg, 10)
-            time.sleep(1)
+        #while True:
+        #    msg = Message(MESSAGE_TYPE_PING)
+        #    self.send_message_retry(0, msg, 10)
+        #    time.sleep(1)
     
-    def init_modules(self):
+    def find_modules(self):
         cherrypy.log("Initializing modules...")
+        self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
+
+        # Debug - just add a dummy module
+        self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
+        return
+
+        # Reset all module addresses to 0
+        self.send_ret_rst()
+
+        # Assign addresses to each module on each string until noone responds any more
+        port_list = [self.ser_port_top, self.ser_port_bottom]
+        port_name_list = ["top", "bottom"]
+        module_cnt = [0, 0]
+        for p in range(len(port_list)):
+            port = port_list[p]
+            port_name = port_name_list[p]
+            if p == 0:
+                mirror = True
+            else:
+                mirror = False
+            if port is None:
+                log_error(f"Skipping detection of modules on {port_name} port as it is not opened")
+                continue
+            addr = 1
+            while True:
+                if not self.send_addr(port, addr):
+                    break
+                self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror})
+                addr += 1
+            log_debug(f"Found {addr} modules on {port_name} port")
+
+            # Now tell the last module of this string to switch on its return path
+            if not self.send_ret_set(port, addr):
+                log_error(f"Unable to enable return path for module {addr} on {port_name} port")
+                # TODO: This is a critical error which should be reported to the user. We need a queue back to the ModuleController for this error messages
+                continue
+            module_cnt[p] = addr
+        # TODO: Report the module_cnt back to ModuleController - we also need a queue here...
+
     
-    def send_message_retry(self, module_nr: int, msg: Message, expect_ack = True, retry_count: int = 1):
+    # Send the MESSAGE_TYPE_RET_RST to the broadcast on both strings, which will cause the modules to
+    # reset their address and disable their individual return path.
+    def send_ret_rst(self):
+        msg = Message(MESSAGE_TYPE_RET_RST, [], MESSAGE_ADDR_BROADCAST)
+        # Send this message twice to make absolutely sure every module got it
+        for _ in range(2):
+            self.send_message_port(self.ser_port_top, msg, False)
+            self.send_message_port(self.ser_port_bottom, msg, False)
+    
+    # Send the new address value to a module
+    def send_addr(self, port, addr):
+        msg = Message(MESSAGE_TYPE_ADDR, [addr], 0)
+        return self.send_message_port(port, msg, True)
+    
+    def send_ret_set(self, port, addr):
+        msg = Message(MESSAGE_TYPE_RET_SET, [], addr)
+        return self.send_message_port(port, msg)
+    
+    def send_message_module_retry(self, module_nr: int, msg: Message, expect_ack = True, retry_count: int = 1):
         for _ in range(retry_count):
-            if self.send_message(module_nr, msg, expect_ack):
+            if self.send_message_module(module_nr, msg, expect_ack):
                 return True
             log_error("Resending message...")
         log_error(f"Message was not ack'd after {retry_count} retries, giving up")
         return False
 
-    def send_message(self, module_nr: int, msg: Message, expect_ack = True):
+    def send_message_module(self, module_nr: int, msg: Message, expect_ack = True):
         # Convert module_nr to the serial port and the module address
         port = self.module_port_addr_mirror[module_nr]["port"]
-        if port is None:
-            cherrypy.log("Unable to send message: Port not opened")
-            return False
         addr = self.module_port_addr_mirror[module_nr]["addr"]
         msg.dst = addr
         
+        # Send message on the corresponding port
+        return self.send_message_port(port, msg, expect_ack)
+    
+    def send_message_port(self, port: Serial, msg: Message, expect_ack = True):
+        log_debug("Sending message")
+
+        # Make sure the port is opened
+        if port is None:
+            cherrypy.log("Unable to send message: Port not opened")
+            return False
+
         # Make sure input buffer is empty
         port.reset_input_buffer()
 
@@ -134,6 +198,12 @@ class PacketRouter:
 
     def get_message(self, port: Serial):
         log_debug("Receiving message")
+
+        # Make sure the port is opened
+        if port is None:
+            cherrypy.log("Unable to send message: Port not opened")
+            return False
+        
         # Wait for magic byte
         while True:
             data = port.read(1)
@@ -179,7 +249,7 @@ class PacketRouter:
         if module["mirror"]:
             img_data = np.flipud(img_data)
         message = Message(MESSAGE_TYPE_DATA, img_data)
-        self.send_message(module_nr, message)
+        self.send_message_module(module_nr, message)
 
 
 class ModuleController(Thread):
@@ -227,7 +297,7 @@ class ModuleController(Thread):
             cherrypy.log("Got command: " + command_data["command"])
             if command_data["command"] == "init_modules":
                 # Send a reset command
-                self.router.init_modules()
+                self.router.find_modules()
             elif command_data["command"] == "save_image":
                 self.update_progress("processing", "Saving image", 0.0)
                 # Convert image to RGB
@@ -308,9 +378,10 @@ class ModuleController(Thread):
                     self.led_settings["progress_value"] = slept/delay
                     if not self.playing:
                         self.led_settings["progress_status"] = "ready"
-                        # TODO: Reset progress_value
-                        return
+                        break
                 self.led_settings["progress_value"] = 0.0
+                if not self.playing:
+                    continue
                 # TODO: Send trigger to microcontroller
                 cherrypy.log(f"Triggered")
 
@@ -320,12 +391,9 @@ class ModuleController(Thread):
                     self.led_settings["progress_value"] = k/9.0
                     time.sleep(1)
                     if not self.playing:
-                        self.led_settings["progress_status"] = "ready"
-                        # TODO: Reset progress_value
-                        return
+                        break
                 self.led_settings["progress_status"] = "ready"
                 self.led_settings["progress_value"] = 0.0
-                self.playing = False
 
 
     def init_modules(self):
@@ -394,7 +462,7 @@ class ModuleController(Thread):
     def trigger(self):
         if self.playing:
             # Stop current playback
-            self.playing = True
+            self.playing = False
         else:
             # Start playback
             self.command_queue.put({"command": "trigger"})
