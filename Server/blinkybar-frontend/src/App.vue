@@ -27,7 +27,10 @@
     <toggle-switch caption="Mirror" icon="arrows-alt-h" v-model="mirror"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
 
-
+    <button class="push-btn" @click="trigger">
+      <font-awesome-icon :icon="['fas','play']"/>
+      Play
+    </button>
     <hr/>
     <h3>Debug info</h3>
     Speed: {{ speed }} <br/>
@@ -99,20 +102,23 @@ export default {
       this.progress_msg = data.progress_msg;
       this.progress_percent = printf('%.1f', this.progress_value * 100);
 
-      // If blockUpdate is true, one of the user intputs has been modified and we don't want to overwrite that with an old value
-      if(this.blockUpdate) {
-        return;
+      // If blockUpdate is true, one of the user inputs has been modified and we don't want to overwrite that with an old value
+      if (!this.blockUpdate) {
+        this.speed = data.speed;
+        this.brightness = data.brightness;
+        this.trigger_delay = data.trigger_delay;
+        this.mirror = data.mirror;
+        this.allow_scaling = data.allow_scaling;
+        this.color_temperature = data.color_temperature;
       }
-      this.speed = data.speed;
-      this.brightness = data.brightness;
-      this.trigger_delay = data.trigger_delay;
-      this.mirror = data.mirror;
-      this.allow_scaling = data.allow_scaling;
-      this.color_temperature = data.color_temperature;
     },
     update(param, value) {
       this.blockUpdate = true;
       this.updateQueryList[param] = value;
+    },
+    async trigger() {
+      let url = new URL(document.location.href + this.triggerCmd);
+      await fetch(url);
     },
   },
   watch: {
@@ -142,8 +148,7 @@ export default {
     allow_scaling(newVal) {
       this.update('allow_scaling', newVal);
     },
-  }
-  ,
+  },
   created() {
     this.updateSettings();
   }
@@ -165,9 +170,34 @@ export default {
 
 .image-box {
   text-align: center;
+  min-height: 13vh;
 }
 
 img {
   image-rendering: pixelated;
+}
+
+.push-btn {
+  background-color: #9cd5ff;
+  border-radius: 3px;
+  border: 1px solid #0b0e07;
+  display: inline-block;
+  cursor: pointer;
+  color: #000000;
+  font-size: 15px;
+  padding: 9px 23px;
+  margin-top: 2vh;
+  text-decoration: none;
+  text-shadow: 0 1px 0 #cddeff;
+  width: 100%;
+}
+
+.push-btn:hover {
+  background-color: #69c1ff;
+}
+
+.push-btn:active {
+  position: relative;
+  top: 1px;
 }
 </style>

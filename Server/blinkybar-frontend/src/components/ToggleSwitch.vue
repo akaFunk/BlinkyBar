@@ -49,8 +49,7 @@ export default {
   width: auto;
   min-width: 1em;
   line-height: 2;
-  display: inline-block;
-  vertical-align: middle;
+  text-align: center;
   margin-right: 0.6vw;
 }
 .switch {
@@ -58,6 +57,7 @@ export default {
   display: inline-block;
   width: 50px;
   height: 20px;
+  vertical-align: middle;
 }
 
 /* Hide default HTML checkbox */
@@ -123,7 +123,5 @@ input:checked + .slider:before {
   width: auto;
   margin-left: 3px;
   line-height: 2;
-  display: inline-block;
-  vertical-align: middle;
 }
 </style>

@@ -147,9 +147,9 @@ export default {
   width: auto;
   min-width: 1em;
   line-height: 2;
-  display: inline-block;
   vertical-align: middle;
   margin-right: 0.6vw;
+  text-align: center;
 }
 
 .slider-value {
