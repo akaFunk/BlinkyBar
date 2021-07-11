@@ -1,7 +1,7 @@
 import logging
 import cherrypy
 import os
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageOps
 import ujson
 import io
 from serial import Serial, serialutil
@@ -96,7 +96,7 @@ class PacketRouter:
             if self.send_message(module_nr, msg, expect_ack):
                 return True
             log_error("Resending message...")
-        log_error("Message was not ack'd after {retry_count} retries, giving up")
+        log_error(f"Message was not ack'd after {retry_count} retries, giving up")
         return False
 
     def send_message(self, module_nr: int, msg: Message, expect_ack = True):
@@ -201,6 +201,7 @@ class ModuleController(Thread):
             "speed": 2.0,
             "color_temperature": 6500,
             "trigger_delay": 1.0,
+            "mirror": False,
             "allow_scaling": True,
             "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
             "progress_status": "noimage",
@@ -260,6 +261,10 @@ class ModuleController(Thread):
                 width = round(self.height*self.image.size[0]/self.image.size[1])
                 image_scaled = image_scaled.resize((width, self.height))
                 cherrypy.log(f"Image resized to {width}x{self.height}")
+
+                # Mirror image
+                if self.led_settings["mirror"]:
+                    image_scaled = ImageOps.mirror(image_scaled)
 
                 # Save scaled image
                 image_scaled.save("image_scaled.png")
@@ -341,6 +346,11 @@ class ModuleController(Thread):
         self.led_settings["trigger_delay"] = trigger_delay
         cherrypy.log(f"Set trigger delay to {self.led_settings['trigger_delay']} s")
     
+    def set_mirror(self, mirror):
+        self.led_settings["mirror"] = mirror
+        # Update the image
+        self.update_image()
+    
     def set_allow_scaling(self, allow_scaling):
         self.led_settings["allow_scaling"] = allow_scaling
         # Update the image
@@ -364,7 +374,7 @@ class WebServer(object):
         return open(os.path.join(static_dir, "index.html"))
     
     @cherrypy.expose
-    def settings(self, speed=None, brightness=None, trigger_delay=None, allow_scaling=None, color_temperature=None):
+    def settings(self, speed=None, brightness=None, trigger_delay=None, mirror=None, allow_scaling=None, color_temperature=None):
         # Create a copy of the current settings dict
         retval = dict(self.controller.led_settings)
         retval.update(dict({"success:": False, "error_msg": ""}))
@@ -406,6 +416,14 @@ class WebServer(object):
             if trigger_delay < 0 or trigger_delay > 1000.0:
                 retval.update(dict({"error_msg": "Trigger delay is out of range"}))
                 return ujson.dumps(retval, indent=4)
+        if mirror is not None:
+            if mirror.lower() in ['true', '1',]:
+                mirror = True
+            elif mirror.lower() in ['false', '0',]:
+                mirror = False
+            else:
+                retval.update(dict({"error_msg": "mirror is out of range"}))
+                return ujson.dumps(retval, indent=4)
         if allow_scaling is not None:
             if allow_scaling.lower() in ['true', '1',]:
                 allow_scaling = True
@@ -427,6 +445,9 @@ class WebServer(object):
         
         if trigger_delay is not None:
             self.controller.set_trigger_delay(trigger_delay)
+        
+        if mirror is not None:
+            self.controller.set_mirror(mirror)
         
         if allow_scaling is not None:
             self.controller.set_allow_scaling(allow_scaling)

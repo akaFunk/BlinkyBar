@@ -14,6 +14,7 @@ Settings can take several parameters:
 -   **brightness** is the brightness of the image as a floating point value between 0 and 1. Settings this value will trigger an upload of the image to the modules. The default value is 1.
 -   **color_temperature** is the temperature of the surrounding light sources. The image is converted to reflect this color temperature. The default value, which makes (almost) no changes to the image is 6500 K. The valid range is between 1000 and 10000 K.
 -   **trigger_delay** sets the delay between pressing the trigger button and starting the playback of the image. The value is given in seconds and any positive floating points value is allowed. The default value is 0.
+-   **mirror** mirrors the image. A change will trigger an image upload.
 -   **allow_scaling** defines if the BlinkyBar is allowed to scale the image or not. This allows to prepare pixel-precise images. Note that if the image height is exactly the same as the number of available pixels, the BlinkyBar will not scale the image as well. If scaling is not allowed and the image is smaller than the current BlinkyBar configuration, only the upper pixels will be used. If no scaling is allowed and the image is larger, the image will be cut at the bottom. Accepted values are true or false. A change of this value might trigger an image upload, if the result will be different. The default value is true.
 
 All parameters are optional. A query looks, for example, like this:
@@ -30,6 +31,7 @@ All queries will return a JSON string with the following structure:
     "speed": 0.5,
     "color_temperature": 6000,
     "trigger_delay": 1.0,
+    "mirror": false,
     "allow_scaling": true,
     "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
     "progress_status": "noimage",
