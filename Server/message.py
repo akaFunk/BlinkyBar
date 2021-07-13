@@ -1,5 +1,6 @@
 from enum import Enum
 import numpy as np
+import math
 
 MESSAGE_MAX_DATA_SIZE        = 256
 MESSAGE_MAGIC                = 0xab
@@ -21,12 +22,15 @@ MESSAGE_TYPE_ACK         = 0xf0
 MESSAGE_TYPE_NACK        = 0xf1
 
 class Message:
-    def __init__(self, type = MESSAGE_TYPE_NACK, data = np.array([], dtype=np.uint8), dst = MESSAGE_ADDR_HOST):
+    def __init__(self, type = MESSAGE_TYPE_NACK, data = None, dst = MESSAGE_ADDR_HOST):
+        if data is None:
+            self.data = np.array([], dtype=np.uint8)
+        else:
+            self.data = np.array(data, dtype=np.uint8)
         self.magic = MESSAGE_MAGIC
         self.type = type
         self.src = MESSAGE_ADDR_HOST
         self.dst = 0
-        self.data = np.array([], dtype=np.uint8)
 
     def to_bytes(self):
         ret = b''
@@ -35,6 +39,6 @@ class Message:
         ret += bytes([self.src])
         ret += bytes([self.dst])
         ret += bytes([len(self.data)%256])
-        ret += bytes([round(len(self.data)/256)])
+        ret += bytes([math.floor(len(self.data)/256)])
         ret += bytes(self.data.tobytes())
         return ret

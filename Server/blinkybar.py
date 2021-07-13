@@ -72,11 +72,6 @@ class PacketRouter:
             self.system_error_msg = f"Unable to open serial port {ser_port_name_bottom}"
             return
         log_debug(f"Opened {ser_port_name_bottom} for down link")
-
-        # TODO: Remove later, only for debugging with Arduino board
-        # Wait for Arduino board reset
-        log_debug("Waiting for arduino to reset...")
-        time.sleep(3)
         
         # Detect modules
         self.find_modules()
@@ -86,6 +81,13 @@ class PacketRouter:
         #    msg = Message(MESSAGE_TYPE_PING)
         #    self.send_message_retry(0, msg, 10)
         #    time.sleep(1)
+        # DEBUG: Send test status codes
+        #while True:
+        #    for k in range(256):
+        #        msg = Message(MESSAGE_TYPE_STAT, [k], 0)
+        #        self.send_message_module(0, msg, False)
+        #        time.sleep(1)
+        #        log_error("send...")
     
     def find_modules(self):
         cherrypy.log("Initializing modules...")
