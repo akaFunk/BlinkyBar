@@ -1,6 +1,9 @@
 #include "ws2812b.h"
 #include <util/delay.h>
 
+// This helps a lot to understand/lern this assembly stuff:
+// https://rn-wissen.de/wiki/index.php?title=Inline-Assembler_in_avr-gcc
+
 void ws2812b_init()
 {
     WS2812B_DDR |= (1<<WS2812B_PIN);

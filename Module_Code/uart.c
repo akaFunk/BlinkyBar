@@ -3,7 +3,7 @@
 #include <avr/io.h>
 #include <stdlib.h>
 
-#define UART_IN_SIZE    4
+#define UART_IN_SIZE    300
 fifo_t uart_in_fifo;
 uint8_t uart_in_fifo_data[UART_IN_SIZE];
 
