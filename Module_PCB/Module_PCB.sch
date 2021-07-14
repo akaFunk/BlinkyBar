@@ -3142,6 +3142,8 @@ F 0 "J3" H 4150 4617 50  0000 C CNN
 F 1 "DS" H 4150 4526 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Horizontal" H 4100 4300 50  0001 C CNN
 F 3 "~" H 4100 4300 50  0001 C CNN
+F 4 "BOOMELE" H 4100 4300 50  0001 C CNN "Manufacturer"
+F 5 "C576162" H 4100 4300 50  0001 C CNN "MPN"
 	1    4100 4300
 	1    0    0    -1  
 $EndComp
@@ -3153,6 +3155,8 @@ F 0 "J2" H 4150 4017 50  0000 C CNN
 F 1 "US" H 4150 3926 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Horizontal" H 4100 3700 50  0001 C CNN
 F 3 "~" H 4100 3700 50  0001 C CNN
+F 4 "XFCN" H 4100 3700 50  0001 C CNN "Manufacturer"
+F 5 "PZ254R-12-6P" H 4100 3700 50  0001 C CNN "MPN"
 	1    4100 3700
 	1    0    0    -1  
 $EndComp
