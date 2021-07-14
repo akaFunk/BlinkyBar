@@ -3307,4 +3307,6 @@ F 5 "Huashuo" H 2550 1150 50  0001 C CNN "Manufacturer"
 	1    2550 1150
 	0    1    -1   0   
 $EndComp
+Text Label 3200 6000 0    50   ~ 0
+PWR_EN
 $EndSCHEMATC
