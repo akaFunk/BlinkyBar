@@ -9,6 +9,10 @@
 #define RET_EN_PORT                 PORTB
 #define RET_EN_PIN                  0
 
+#define PWR_EN_DDR                  DDRC
+#define PWR_EN_PORT                 PORTC
+#define PWR_EN_PIN                  4
+
 #define MESSAGE_MAGIC               0xab    // Magic word used to mark the beginning of a message
 
 #define MESSAGE_TYPE_RET_RST        0x00    // Reset own address, disable return path (RETO, ~RET_EN), always a broadcast message, len=0
@@ -63,6 +67,12 @@ int main()
 {
     // Init GPIOs
     RET_EN_DDR |= (1<<RET_EN_PIN);
+    PWR_EN_PORT &= (1<<PWR_EN_PIN);
+    PWR_EN_DDR |= (1<<PWR_EN_PIN);
+
+    // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
+    _delay_ms(2000);
+    PWR_EN_PORT |= (1<<PWR_EN_PIN);
 
     ws2812b_init();
     uart_init();
