@@ -2615,8 +2615,6 @@ F 5 "RC0603FR-0733RL" H 5500 6850 50  0001 C CNN "MPN"
 $EndComp
 Text Label 5350 6850 2    50   ~ 0
 RETO
-Text Label 5350 7500 2    50   ~ 0
-RETO
 Text Label 4100 5900 2    50   ~ 0
 MISO
 $Comp
@@ -3309,4 +3307,6 @@ F 5 "Huashuo" H 2550 1150 50  0001 C CNN "Manufacturer"
 $EndComp
 Text Label 3200 6000 0    50   ~ 0
 PWR_EN
+Text Label 5350 7500 2    50   ~ 0
+RETI
 $EndSCHEMATC
