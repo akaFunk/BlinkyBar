@@ -15,7 +15,7 @@ PROGRAMMER=atmelice_isp
 PORT=usb
 
 BIN=blinkybar_module
-OBJS=main.o uart.o fifo.o ws2812b.o
+OBJS=main.o uart.o fifo.o ws2812b.o flash.o
 AVRDUDE=avrdude
 CC=avr-gcc
 OBJCOPY=avr-objcopy
