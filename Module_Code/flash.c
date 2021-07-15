@@ -4,9 +4,7 @@
 
 // This flash control is for the W25Q16JV
 
-/*
- * Sets up hardware SPI interface and CS pin
- */
+// Sets up hardware SPI interface and CS pin
 void flash_init()
 {
     // Set up CS
@@ -23,6 +21,7 @@ void flash_init()
 	SPCR = (1<<SPE) | (1<<MSTR);
 }
 
+// Write a byte to the SPI
 void flash_write(uint8_t data)
 {
 	SPDR = data;
@@ -30,6 +29,7 @@ void flash_write(uint8_t data)
 	SPDR;
 }
 
+// Read a byte from the SPI
 uint8_t flash_read()
 {
 	SPDR = 0;
@@ -37,6 +37,7 @@ uint8_t flash_read()
 	return SPDR;
 }
 
+// Reat the status1 register
 uint8_t flash_status()
 {
 	flash_select();
@@ -46,11 +47,13 @@ uint8_t flash_status()
 	return status;
 }
 
+// Wait for the busy flag to clear
 void flash_wait()
 {
 	while(flash_status() & FLASH_STATUS1_BUSY);
 }
 
+// Send write enable command
 void flash_write_enable()
 {
     flash_select();
@@ -58,6 +61,7 @@ void flash_write_enable()
     flash_deselect();
 }
 
+// Erase the complete chip, will return once its done
 void flash_chip_erase()
 {
     flash_write_enable();
@@ -93,6 +97,7 @@ void flash_write_block(uint16_t page, uint8_t* data)
 	flash_wait();
 }
 
+// Read a complete block from the flash, identified by the page number
 void flash_read_block(uint16_t page, uint8_t* data)
 {
 	uint16_t i;
@@ -107,6 +112,7 @@ void flash_read_block(uint16_t page, uint8_t* data)
 	flash_deselect();
 }
 
+// Start continous read from zero address
 void flash_read_cont_start()
 {
     flash_select();
@@ -116,12 +122,14 @@ void flash_read_cont_start()
     flash_write(0x00);
 }
 
+// Read a block of cnt bytes in continous mode
 void flash_read_cont_read(uint8_t cnt, uint8_t* data)
 {
     for(uint8_t i = 0; i < cnt; i++)
         data[i] = flash_read();
 }
 
+// Stop continous read
 void flash_read_cont_stop()
 {
 	flash_deselect();
