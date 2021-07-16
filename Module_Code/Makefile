@@ -32,13 +32,14 @@ ${BIN}.elf: ${OBJS}
 	${CC} ${CFLAGS} -c -o $@ $<
 
 fuses:
-	$(AVRDUDE) -F -V -c $(PROGRAMMER) -p $(DEVICE) -P $(PORT) -U lfuse:w:$(LFU):m -U hfuse:w:$(HFU):m -U efuse:w:$(EFU):m
+	$(AVRDUDE) -F -V -c $(PROGRAMMER) -p $(DEVICE) -B 10 -P $(PORT) -U lfuse:w:$(LFU):m -U hfuse:w:$(HFU):m -U efuse:w:$(EFU):m
 
 flash: ${BIN}.hex
-	$(AVRDUDE) -F -V -c $(PROGRAMMER) -p $(DEVICE) -P $(PORT) -U flash:w:$<
+	$(AVRDUDE) -F -V -c $(PROGRAMMER) -p $(DEVICE) -B 1 -P $(PORT) -U flash:w:$<
 
 clean:
 	rm -f ${BIN}.elf ${BIN}.hex ${OBJS}
 
+# The assembler files are only used for debugging
 %.s: %.c
 	${CC} ${CFLAGS} -S -o $@ $<
