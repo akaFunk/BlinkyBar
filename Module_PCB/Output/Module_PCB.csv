@@ -14,7 +14,7 @@ J3 ,1,"DS","Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Horizontal","~","C
 L1 ,1,"2.2u","Inductor_SMD:L_Abracon_ASPI-0630LR","~","MJC-0603T-2R2-M","Me-TECH"
 Q1 ,1,"HSS2307","Package_TO_SOT_SMD:SOT-23W","~","HSS2307","Huashuo"
 Q2 ,1,"BSS123","Package_TO_SOT_SMD:SOT-23","http://www.diodes.com/assets/Datasheets/ds30366.pdf","BSS123","ON Semiconductor"
-R1 R2 R4 R5 R7 R8 ,6,"10k","Resistor_SMD:R_0603_1608Metric","~","RC0603FR-0710KL","YAGEO"
+R1 R2 R4 R5 R7 R8 R14 ,7,"10k","Resistor_SMD:R_0603_1608Metric","~","RC0603FR-0710KL","YAGEO"
 R10 ,1,"15k","Resistor_SMD:R_0603_1608Metric","~","RC0603FR-0715KL","YAGEO"
 R3 ,1,"330","Resistor_SMD:R_0603_1608Metric","~","RC0603FR-07330RL","YAGEO"
 R6 ,1,"43k","Resistor_SMD:R_0603_1608Metric","~","RC0603FR-0743KL","YAGEO"
