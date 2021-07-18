@@ -1,14 +1,14 @@
 # Alternative: https://gist.github.com/mcous/5920089
 
 # Fuses with external 8 MHz crystal
-#LFU = 0xFF
-#HFU = 0xDA
-#EFU = 0xFD
-
-# Fuses with external 8 MHz clock (NOT CRYSTAL!)
-LFU = 0xE0
+LFU = 0xFF
 HFU = 0xDA
 EFU = 0xFD
+
+# Fuses with external 8 MHz clock (NOT CRYSTAL!) - just for testing stuff
+#LFU = 0xE0
+#HFU = 0xDA
+#EFU = 0xFD
 
 # Programmer options for Atmel ICE in ISP mode
 PROGRAMMER=atmelice_isp

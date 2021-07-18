@@ -15,14 +15,14 @@
 
 #define MESSAGE_MAGIC               0xab    // Magic word used to mark the beginning of a message
 
-#define MESSAGE_TYPE_RET_RST        0x00    // Reset own address, disable return path (RETO, ~RET_EN), always a broadcast message, len=0
-#define MESSAGE_TYPE_ADDR           0x02    // Address idication for this module, len=1 (new address), enable return path, ack, disable return path
-#define MESSAGE_TYPE_RET_SET        0x01    // Enable the return path (RETO, ~RET_EN), len=0
-#define MESSAGE_TYPE_PING           0x10    // Ping message, response with an ACK
-#define MESSAGE_TYPE_STAT           0x20    // Display a status value with the LEDs, len=1
-#define MESSAGE_TYPE_DEL            0x30    // Delete the flash, len=0
-#define MESSAGE_TYPE_DATA           0x31    // Next data block, len=1..256
-#define MESSAGE_TYPE_PREP           0x40    // All data transmitted to modules, prepare for trigger, len=0
+#define MESSAGE_TYPE_ADDR_SET       0x00    // Set a new module address, len=1 (new address), no ACK
+#define MESSAGE_TYPE_RET_DISABLE    0x10    // Disable the return path, len=0, no ACK
+#define MESSAGE_TYPE_RET_ENABLE     0x11    // Enable the return path, len=0, no ACK
+#define MESSAGE_TYPE_PING           0x20    // Ping message, response with an ACK
+#define MESSAGE_TYPE_STAT           0x30    // Display a status value with the LEDs, len=1
+#define MESSAGE_TYPE_DEL            0x40    // Delete the flash, len=0
+#define MESSAGE_TYPE_DATA           0x41    // Next data block, len=1..256
+#define MESSAGE_TYPE_PREP           0x50    // All data transmitted to modules, prepare for trigger, len=0
 #define MESSAGE_TYPE_ACK            0xf0    // ACK last message (also used as pong), len=0
 #define MESSAGE_TYPE_NACK           0xf1    // NACK last message, len=0
 
@@ -45,6 +45,15 @@ typedef struct
     uint8_t src;
     uint8_t dst;
     uint16_t len;
+} __attribute__((packed)) message_header_t;
+
+typedef struct
+{
+    uint8_t magic;
+    uint8_t type;
+    uint8_t src;
+    uint8_t dst;
+    uint16_t len;
     uint8_t data[MESSAGE_MAX_DATA_SIZE];
 } __attribute__((packed)) message_t;
 
@@ -53,30 +62,39 @@ typedef struct
 void message_tx(message_t* msg)
 {
     uint8_t* msg_raw = (uint8_t*)msg;
-    for(uint8_t k = 0; k < MESSAGE_HEADER_SIZE; k++)
+    for(uint8_t k = 0; k < MESSAGE_HEADER_SIZE + msg->len; k++)
         uart_putc(msg_raw[k]);
-    for(uint16_t k = 0; k < msg->len; k++)
-        uart_putc(msg->data[k]);
 }
 
 void process_message(message_t* msg);
-void transmit_response(message_t*msg, uint8_t success);
+void transmit_response(uint8_t success);
 void display_status(uint8_t status);
 
 int main()
 {
     // Init GPIOs
+    RET_EN_PORT |= (1<<RET_EN_PIN);
     RET_EN_DDR |= (1<<RET_EN_PIN);
     PWR_EN_PORT &= (1<<PWR_EN_PIN);
     PWR_EN_DDR |= (1<<PWR_EN_PIN);
 
     // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
-    _delay_ms(2000);
+    _delay_ms(200);  // TODO: Reset to ~2000
     PWR_EN_PORT |= (1<<PWR_EN_PIN);
 
     ws2812b_init();
     uart_init();
     sei();
+
+    // TODO: Shutdown ALL LEDs
+    display_status(0);
+
+    /*RET_EN_PORT &= ~(1<<RET_EN_PIN);
+    while(1)
+    {
+        uart_putcc("Hello world!");
+        _delay_ms(1000);
+    }*/
 
     // Send test data to LEDs
     /*uint8_t led_data[3*8];
@@ -109,27 +127,20 @@ int main()
 
         // Check data length
         if(msg.len > MESSAGE_MAX_DATA_SIZE)
-        {
             continue;
-        }
 
         // Read the data
         for(uint16_t k = 0; k < msg.len; k++)
             msg.data[k] = fifo_popc_block(&uart_in_fifo);
 
-        // Got a complete message
-        if(msg.dst == MESSAGE_ADDR_BROADCAST || msg.dst != module_addr)
-        {
-            // This message is not for this module or is a broadcast message
-            // Forward it to the next module
-            message_tx(&msg);
-        }
-
+        // Got a complete message, interprete it
         if(msg.dst == module_addr || msg.dst == MESSAGE_ADDR_BROADCAST)
-        {
-            // This is a message for this module, process it
             process_message(&msg);
-        }
+
+        // If this message is not for this module or is a broadcast message,
+        // forward it to the next module
+        if(msg.dst == MESSAGE_ADDR_BROADCAST || msg.dst != module_addr)
+            message_tx(&msg);
     }
 }
 
@@ -138,32 +149,33 @@ void process_message(message_t* msg)
     uint8_t status;
     switch(msg->type)
     {
-    case MESSAGE_TYPE_RET_RST:
-        if(msg->len != 0)
-            return transmit_response(msg, 0);
-        // Reset module address to 0
-        module_addr = 0;
-        // Disable the RETO transmitter, we don't know how many modules are after us
-        RET_EN_PORT |= (1<<RET_EN_PIN);
-        break;
-    case MESSAGE_TYPE_ADDR:
+    case MESSAGE_TYPE_ADDR_SET:
         if(msg->len != 1)
-            return transmit_response(msg, 0);
+            return transmit_response(0);
         // Set the current module address
         module_addr = msg->data[0];
-        break;
-    case MESSAGE_TYPE_RET_SET:
+        display_status(2);
+        return;  // don't send ACK
+    case MESSAGE_TYPE_RET_DISABLE:
         if(msg->len != 0)
-            return transmit_response(msg, 0);
-        // Enable the RETO transmitter
+            return transmit_response(0);
+        // Disable the RET* transmitter, we don't know how many modules are after us
+        RET_EN_PORT |= (1<<RET_EN_PIN);
+        display_status(1);
+        return;  // don't send an ACK
+    case MESSAGE_TYPE_RET_ENABLE:
+        if(msg->len != 0)
+            return transmit_response(0);
+        // Enable the RET* transmitter
         RET_EN_PORT &= ~(1<<RET_EN_PIN);
-        break;
+        display_status(4);
+        return;  // don't send an ACK
     case MESSAGE_TYPE_PING:
         // Fall through to send ACK
         break;
     case MESSAGE_TYPE_STAT:
         if(msg->len != 1)
-            return transmit_response(msg, 0);
+            return transmit_response(0);
         status = msg->data[0];
         // TODO: Send this status value to the LEDs
         display_status(status);
@@ -180,17 +192,18 @@ void process_message(message_t* msg)
     }
 
     // Transmit an ACK
-    transmit_response(msg, 1);
+    transmit_response(1);
 }
 
-void transmit_response(message_t*msg, uint8_t success)
+void transmit_response(uint8_t success)
 {
-    msg->magic = MESSAGE_MAGIC;
-    msg->type = success?MESSAGE_TYPE_ACK:MESSAGE_TYPE_NACK;
-    msg->len = 0;
-    msg->dst = MESSAGE_ADDR_HOST;
-    msg->src = module_addr;
-    message_tx(msg);
+    message_header_t msg;
+    msg.magic = MESSAGE_MAGIC;
+    msg.type = success?MESSAGE_TYPE_ACK:MESSAGE_TYPE_NACK;
+    msg.len = 0;
+    msg.dst = MESSAGE_ADDR_HOST;
+    msg.src = module_addr;
+    message_tx((message_t*)&msg);
 }
 
 void display_status(uint8_t status)
