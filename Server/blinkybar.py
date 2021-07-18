@@ -15,13 +15,18 @@ import numpy as np
 from message import *
 from colortemperaturetable import *
 
+import logging
+#logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s ", level=logging.DEBUG)
+#logging.info("test")
+
 
 # Format cherrypy logging with ms output
 cherrypy._cplogging.LogManager.time = lambda self : "" # Hack that cherrypy will not add a date/time to the message
 new_formatter = logging.Formatter("%(asctime)s %(levelname)s:%(message)s")
 for h in cherrypy.log.error_log.handlers:
     h.setFormatter(new_formatter)
-cherrypy.log.error_log.setLevel(logging.NOTSET)
+cherrypy.log.error_log.setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 def log_fatal(msg):
@@ -57,24 +62,29 @@ class PacketRouter:
         self.system_error_msg = ""
 
         # Open the ports
-        try:
-            self.ser_port_top = Serial(port=ser_port_name_top, baudrate=1000000, timeout=0.5, write_timeout=0.5)
-        except serialutil.SerialException:
-            log_error("Unable to open serial port")
-            self.system_error_msg = f"Unable to open serial port {ser_port_name_top}"
-            return
-        log_debug(f"Opened {ser_port_name_top} for up link")
+        if ser_port_name_top is not None:
+            try:
+                self.ser_port_top = Serial(port=ser_port_name_top, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+                log_info(f"Opened {ser_port_name_top} for up link")
+            except serialutil.SerialException:
+                log_error(f"Unable to open serial port {ser_port_name_top}")
+                self.system_error_msg = f"Unable to open serial port {ser_port_name_top}"
 
-        try:
-            self.ser_port_bottom = Serial(port=ser_port_name_bottom, baudrate=1000000, timeout=0.5, write_timeout=0.5)
-        except FileNotFoundError:
-            log_error("Unable to open serial port")
-            self.system_error_msg = f"Unable to open serial port {ser_port_name_bottom}"
-            return
-        log_debug(f"Opened {ser_port_name_bottom} for down link")
+        if ser_port_name_bottom is not None:
+            try:
+                self.ser_port_bottom = Serial(port=ser_port_name_bottom, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+                log_info(f"Opened {ser_port_name_bottom} for down link")
+            except serialutil.SerialException:
+                log_error(f"Unable to open serial port {ser_port_name_bottom}")
+                self.system_error_msg = f"Unable to open serial port {ser_port_name_bottom}"
         
         # Detect modules
         self.find_modules()
+
+        # DEBUG: Send reset message continously
+        #while True:
+        #    self.send_ping()
+        #    time.sleep(0.1)
 
         # DEBUG: Send a test message
         #while True:
@@ -90,15 +100,13 @@ class PacketRouter:
         #        log_error("send...")
     
     def find_modules(self):
-        cherrypy.log("Initializing modules...")
+        log_info("Initializing modules...")
         self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
 
         # Debug - just add a dummy module
-        self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
-        return
+        #self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
+        #return
 
-        # Reset all module addresses to 0
-        self.send_ret_rst()
 
         # Assign addresses to each module on each string until noone responds any more
         port_list = [self.ser_port_top, self.ser_port_bottom]
@@ -109,50 +117,70 @@ class PacketRouter:
             port = port_list[p]
             port_name = port_name_list[p]
             if port is None:
-                log_error(f"Skipping detection of modules on {port_name} port as it is not opened")
+                log_error(f"Skipping detection of modules on port {port_name} port as it is not opened")
                 continue
-            addr = 1
+
+            # Disable the return path for all modules
+            self.send_ret_disable(port, MESSAGE_ADDR_BROADCAST)
+
+            # Reset all module addresses to 0
+            self.send_addr_set(port, MESSAGE_ADDR_BROADCAST, 0)
+            
+            addr = 1  # First module address is 1, as 0 is used as reset address
             while True:
-                if not self.send_addr(port, addr):
+                # Send the new address to the next module
+                self.send_addr_set(port, 0, addr)
+
+                # Enable the return path of that new module
+                self.send_ret_enable(port, addr)
+
+                # Send a ping to see if the module does exist
+                if not self.send_ping(port, addr):
+                    # No answer from this module, break the addressing loop
                     break
+                # Otherwise add this module to the list
                 self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
+
+                # And disable the return path of this module again
+                self.send_ret_disable(port, addr)
+
                 addr += 1
-            log_debug(f"Found {addr} modules on {port_name} port")
+            addr -= 1
+            log_info(f"Found {addr} modules on {port_name} port")
 
             # Now tell the last module of this string to switch on its return path
-            if not self.send_ret_set(port, addr):
-                log_error(f"Unable to enable return path for module {addr} on {port_name} port")
+            if not self.send_ret_enable(port, addr):
+                log_error(f"Unable to enable return path for module {addr} on port {port_name}")
                 # TODO: This is a critical error which should be reported to the user. We need a queue back to the ModuleController for this error messages
                 continue
             module_cnt[p] = addr
         # TODO: Report the module_cnt back to ModuleController - we also need a queue here...
 
     
-    # Send the MESSAGE_TYPE_RET_RST to the broadcast on both strings, which will cause the modules to
-    # reset their address and disable their individual return path.
-    def send_ret_rst(self):
-        msg = Message(MESSAGE_TYPE_RET_RST, [], MESSAGE_ADDR_BROADCAST)
+    # Send a new address value to a module
+    def send_addr_set(self, port, addr, new_addr):
+        log_debug(f"Sending new address {new_addr} to {addr} on port {port.port}")
+        msg = Message(MESSAGE_TYPE_ADDR_SET, [new_addr], addr)
+        return self.send_message_port(port, msg, False)
+
+    # Send MESSAGE_TYPE_RET_DISABLE message to a module
+    def send_ret_disable(self, port, addr):
+        msg = Message(MESSAGE_TYPE_RET_DISABLE, [], addr)
         # Send this message twice to make absolutely sure every module got it
-        for _ in range(2):
-            self.send_message_port(self.ser_port_top, msg, False)
-            self.send_message_port(self.ser_port_bottom, msg, False)
+        log_debug(f"Sending return disable message to {addr} on {port.port}")
+        self.send_message_port(port, msg, False)
     
-    # Send the new address value to a module
-    def send_addr(self, port, addr):
-        msg = Message(MESSAGE_TYPE_ADDR, [addr], 0)
+    # send MESSAGE_TYPE_RET_ENABLE to a module
+    def send_ret_enable(self, port, addr):
+        msg = Message(MESSAGE_TYPE_RET_ENABLE, [], addr)
+        # Send this message twice to make absolutely sure every module got it
+        log_debug(f"Sending return enable message to {addr} on {port.port}")
+        self.send_message_port(port, msg, False)
+    
+    def send_ping(self, port, addr):
+        msg = Message(MESSAGE_TYPE_PING, [], addr)
+        log_debug(f"Sending ping to {addr} on {port.port}")
         return self.send_message_port(port, msg, True)
-    
-    def send_ret_set(self, port, addr):
-        msg = Message(MESSAGE_TYPE_RET_SET, [], addr)
-        return self.send_message_port(port, msg)
-    
-    def send_message_module_retry(self, module_nr: int, msg: Message, expect_ack = True, retry_count: int = 1):
-        for _ in range(retry_count):
-            if self.send_message_module(module_nr, msg, expect_ack):
-                return True
-            log_error("Resending message...")
-        log_error(f"Message was not ack'd after {retry_count} retries, giving up")
-        return False
 
     def send_message_module(self, module_nr: int, msg: Message, expect_ack = True):
         # Convert module_nr to the serial port and the module address
@@ -163,12 +191,12 @@ class PacketRouter:
         # Send message on the corresponding port
         return self.send_message_port(port, msg, expect_ack)
     
-    def send_message_port(self, port: Serial, msg: Message, expect_ack = True):
-        log_debug("Sending message")
+    def send_message_port(self, port: Serial, msg: Message, expect_ack: bool = True):
+        log_info("Sending message: 0x" + msg.to_bytes().hex())
 
         # Make sure the port is opened
         if port is None:
-            cherrypy.log("Unable to send message: Port not opened")
+            log_error("Unable to send message: Port not opened")
             return False
 
         # Make sure input buffer is empty
@@ -176,12 +204,14 @@ class PacketRouter:
 
         # Send message
         port.write(msg.to_bytes())
-        log_debug("Message sent")
+        log_info("Message sent")
 
         # If not ACK is expected, we are done at this point
         if not expect_ack:
+            log_info("Not expecting ACK...")
             return True
 
+        log_info("Waiting for ACK")
         # Wait for ACK
         ans = self.get_message(port)
         if ans is None:
@@ -189,25 +219,26 @@ class PacketRouter:
         
         # Check answer
         if ans.type != MESSAGE_TYPE_ACK:
-            log_error("Got message, but no ACK")
+            log_error(f"Got message, but no ACK:")
+            print(ans.to_bytes())
             return False
         
         # Got an ACK
         return True
 
     def get_message(self, port: Serial):
-        log_debug("Receiving message")
+        log_info("Receiving message")
 
         # Make sure the port is opened
         if port is None:
-            cherrypy.log("Unable to send message: Port not opened")
+            log_error("Unable to send message: Port not opened")
             return False
         
         # Wait for magic byte
         while True:
             data = port.read(1)
             if len(data) != 1:
-                log_error("Failed to get magic byte from module: Timeout")
+                log_debug("Failed to get magic byte from module: Timeout")
                 return None
             if data[0] != MESSAGE_MAGIC:
                 log_error(f"Lost sync, got {data} instead of {MESSAGE_MAGIC}")
@@ -217,7 +248,7 @@ class PacketRouter:
         # Magic byte received
         ans = Message()
         ans.magic = MESSAGE_MAGIC
-        log_debug("Got magic byte")
+        log_info("Got magic byte")
 
         # Read header
         header = port.read(5)
@@ -228,17 +259,22 @@ class PacketRouter:
         ans.src = header[1]
         ans.dst = header[2]
         ans.len = header[4]*256 + header[3]
-        log_debug("Got header")
+        log_info(f"Got header: {ans.to_bytes().hex()}")
         if ans.len > MESSAGE_MAX_DATA_SIZE:
             log_error(f"Got message header with too high len value of {ans.len}")
             return None
         
         # Read the data
-        ans.data = port.read(ans.len)
-        if len(ans.data) != ans.len:
-            log_error(f"Failed to receive {ans.len} bytes of data, got only {len(ans.data)} bytes")
-            return None
-        
+        if ans.len > 0:
+            log_info(f"Reading payload of length {ans.len}")
+            data = port.read(ans.len)
+            log_debug(f"Got payload: 0x{data.hex()}")
+            if len(data) != ans.len:
+                log_error(f"Failed to receive {ans.len} bytes of data, got only {len(ans.data)} bytes")
+                return None
+            ans.data = np.frombuffer(data, dtype=np.uint8)
+            log_debug("Got data")
+
         # Answer is complete
         return ans
     
@@ -284,16 +320,13 @@ class ModuleController(Thread):
         # The system error message may have been set during initialization of the packet router
         self.led_settings["system_error_msg"] = self.router.system_error_msg
 
-        # Initialize the modules
-        self.init_modules()
-
         # Scale and upload the current image
         self.update_image()
 
     def run(self):
         while True:
             command_data = self.command_queue.get()
-            cherrypy.log("Got command: " + command_data["command"])
+            log_info("Got command: " + command_data["command"])
             if command_data["command"] == "init_modules":
                 # Send a reset command
                 self.router.find_modules()
@@ -304,10 +337,10 @@ class ModuleController(Thread):
                 # Save new original image as png
                 # The compression level is chosen fairly low to speed things up
                 self.image.save("image.png", compress_level=1)
-                cherrypy.log("Saved original image")
+                log_info("Saved original image")
             elif command_data["command"] == "update_image":
                 self.update_progress("processing", "Scaling image", 0.2)
-                cherrypy.log("Processing new image")
+                log_info("Processing new image")
 
                 # Apply color temperature correction
                 temp_sel = self.led_settings['color_temperature']
@@ -317,13 +350,13 @@ class ModuleController(Thread):
                     0.0, g/255.0, 0.0, 0.0,
                     0.0, 0.0, b/255.0, 0.0)
                 image_scaled = self.image.convert('RGB', matrix)
-                cherrypy.log(f"Applied color temperature of {temp_sel} K")
+                log_info(f"Applied color temperature of {temp_sel} K")
 
                 # Apply brightness correction
                 enhancer = ImageEnhance.Brightness(image_scaled)
-                cherrypy.log(f"Brightness: {self.led_settings['brightness']}")
+                log_info(f"Brightness: {self.led_settings['brightness']}")
                 image_scaled = enhancer.enhance(self.led_settings["brightness"])
-                cherrypy.log(f"Applied brightness of {self.led_settings['brightness']*100}%")
+                log_info(f"Applied brightness of {self.led_settings['brightness']*100}%")
 
                 # TODO: Crop image if required
 
@@ -331,7 +364,7 @@ class ModuleController(Thread):
                 # TODO: Only if it has to be rescaled...
                 width = round(self.height*self.image.size[0]/self.image.size[1])
                 image_scaled = image_scaled.resize((width, self.height))
-                cherrypy.log(f"Image resized to {width}x{self.height}")
+                log_info(f"Image resized to {width}x{self.height}")
 
                 # Mirror image
                 if self.led_settings["mirror"]:
@@ -339,37 +372,37 @@ class ModuleController(Thread):
 
                 # Save scaled image
                 image_scaled.save("image_scaled.png")
-                cherrypy.log("Saved scaled image")
+                log_info("Saved scaled image")
 
                 # Calculate the hash of the scaled image
                 image_bytes = image_scaled.tobytes()
                 self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
-                cherrypy.log(f"New hash: {self.led_settings['image_hash']}")
-                cherrypy.log("Updated scaled image hash")
+                log_info(f"New hash: {self.led_settings['image_hash']}")
+                log_info("Updated scaled image hash")
             elif command_data["command"] == "upload_image":
                 self.uploading_image = True
                 self.update_progress("processing", "Uploading image", 0.4)
                 for k in range(10):
-                    cherrypy.log(f"Uploading image... {k+1}/10")
+                    log_info(f"Uploading image... {k+1}/10")
                     time.sleep(0.2)
                     self.led_settings["progress_value"] = 0.4+0.6*k/9
                     if not self.uploading_image:
-                        cherrypy.log("Cancelled upload")
+                        log_info("Cancelled upload")
                         self.update_progress("noimage", "", 0.0)
                         break
                 self.update_progress("ready", "", 0.0)
             elif command_data["command"] == "set_speed":
                 # TODO: Send new speed value to microcontroller
-                cherrypy.log(f"Set speed to {self.led_settings['speed']} m/s")
+                log_info(f"Set speed to {self.led_settings['speed']} m/s")
             elif command_data["command"] == "set_repeat":
                 # TODO: Send new repeat value to microcontroller
-                log_debug(f"Sent repeat value of {self.led_settings['repeat']} to modules")
+                log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
             elif command_data["command"] == "trigger":
                 self.led_settings["progress_status"] = "playing"
                 self.led_settings["progress_value"] = 0.0
                 self.playing = True
                 delay = self.led_settings['trigger_delay']
-                cherrypy.log(f"Got trigger command, will spleep {delay} s")
+                log_info(f"Got trigger command, will spleep {delay} s")
                 slept = 0.0
                 while slept < self.led_settings['trigger_delay']:
                     time.sleep(0.05)
@@ -382,7 +415,7 @@ class ModuleController(Thread):
                 if not self.playing:
                     continue
                 # TODO: Send trigger to microcontroller
-                cherrypy.log(f"Triggered")
+                log_info(f"Triggered")
 
                 # Fake loading bar for playback
                 # TODO: Find something how we can know the current state without estimating it
@@ -441,7 +474,7 @@ class ModuleController(Thread):
 
     def set_trigger_delay(self, trigger_delay):
         self.led_settings["trigger_delay"] = trigger_delay
-        cherrypy.log(f"Set trigger delay to {self.led_settings['trigger_delay']} s")
+        log_info(f"Set trigger delay to {self.led_settings['trigger_delay']} s")
     
     def set_mirror(self, mirror):
         self.led_settings["mirror"] = mirror
@@ -473,7 +506,7 @@ class WebServer(object):
         self.command_queue = Queue()
         self.controller = ModuleController(config, self.command_queue)
         self.controller.start()
-        cherrypy.log("BlinkyBar server started")
+        log_info("BlinkyBar server started")
 
     # Load index.html
     @cherrypy.expose
@@ -579,13 +612,13 @@ class WebServer(object):
     # Upload an image as png/jpg/gif/... in post data
     @cherrypy.expose
     def set_image(self, image_obj):
-        cherrypy.log("Got a new image")
+        log_info("Got a new image")
         image_data = image_obj.file.read()
 
-        cherrypy.log("set_image data read")
+        log_info("set_image data read")
         new_image = Image.open(io.BytesIO(image_data))
         self.controller.new_image(new_image)
-        cherrypy.log("set_image processed")
+        log_info("set_image processed")
         return ujson.dumps({"success": True})
     
     # Download the full image
@@ -618,7 +651,7 @@ if __name__ == '__main__':
         config["port_down"] = None
     config["baudrate"] = float(cfgparser.get("blinkybar", "baudrate"))
 
-    cherrypy.log("Started BlinkyBar Server")
+    log_info("Started BlinkyBar Server")
 
     static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static')
     conf = {
