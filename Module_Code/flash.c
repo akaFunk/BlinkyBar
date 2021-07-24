@@ -26,6 +26,9 @@ void flash_init()
 	// Set up for SPI mode 0, master, f_sys/2
 	SPCR = (1<<SPE) | (1<<MSTR);
     SPSR = (1<<SPI2X);
+
+    // Reset the flash chip
+    flash_reset();
 }
 
 // Write a byte to the SPI
@@ -52,6 +55,13 @@ uint8_t flash_status()
 	uint8_t status = flash_read();
 	flash_deselect();
 	return status;
+}
+
+void flash_reset()
+{
+    flash_select(),
+    flash_write(0x99);
+    flash_deselect();
 }
 
 uint8_t flash_jedec_id()
@@ -134,13 +144,13 @@ void flash_read_block(uint16_t page, uint8_t* data)
 }
 
 // Start continous read from zero address
-void flash_read_cont_start()
+void flash_read_cont_start(uint16_t page)
 {
     flash_select();
     flash_write(0x03);              // Write read instruction
-    flash_write(0x00);              // Address is 0
-    flash_write(0x00);
-    flash_write(0x00);
+    flash_write((page>>8)&0xff);    // Write page number (= address>>8)
+    flash_write(page&0xff);
+    flash_write(0x00);              // Lowest address byte is always 0, as we want to write a complete page
 }
 
 // Read a block of cnt bytes in continous mode

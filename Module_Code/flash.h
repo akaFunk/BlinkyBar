@@ -36,16 +36,17 @@ void flash_init();
 void flash_write(uint8_t data);
 uint8_t flash_read();
 uint8_t flash_status();
+void flash_reset();
 uint8_t flash_jedec_id();
 uint8_t flash_busy();
 void flash_wait();
 void flash_write_enable();
 void flash_chip_erase();
 void flash_write_block(uint16_t page, uint8_t* data);
-void flash_readBlock(uint16_t page, uint8_t* data);
+void flash_read_block(uint16_t page, uint8_t* data);
 
 // Continous read functions
-void flash_read_cont_start();
+void flash_read_cont_start(uint16_t page);
 void flash_read_cont_read(uint8_t cnt, uint8_t* data);
 void flash_read_cont_stop();
 
