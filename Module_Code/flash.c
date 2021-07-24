@@ -1,8 +1,9 @@
 #include "flash.h"
 #include "uart.h"
 #include <util/delay.h>
+#include <avr/io.h>
 
-// This flash control is for the W25Q16JV
+// This flash control is for the Winbond W25Q16JV, but many others may be compatible
 
 // Sets up hardware SPI interface and CS pin
 void flash_init()
@@ -16,9 +17,15 @@ void flash_init()
     FLASH_WP_DDR |= (1<<FLASH_WP_PIN);
     FLASH_HOLD_PORT |= (1<<FLASH_HOLD_PIN);
     FLASH_HOLD_DDR |= (1<<FLASH_HOLD_PIN);
+
+    // Set up SPI output pins
+    FLASH_MOSI_DDR |= (1<<FLASH_MOSI_PIN);
+    FLASH_SCK_DDR |= (1<<FLASH_SCK_PIN);
+    FLASH_SS_DDR |= (1<<FLASH_SS_PIN);
 	
-	// Set up for SPI mode 0
+	// Set up for SPI mode 0, master, f_sys/2
 	SPCR = (1<<SPE) | (1<<MSTR);
+    SPSR = (1<<SPI2X);
 }
 
 // Write a byte to the SPI
@@ -32,7 +39,7 @@ void flash_write(uint8_t data)
 // Read a byte from the SPI
 uint8_t flash_read()
 {
-	SPDR = 0;
+	SPDR = 0xff;
 	while(!(SPSR & (1<<SPIF)));
 	return SPDR;
 }
@@ -47,10 +54,24 @@ uint8_t flash_status()
 	return status;
 }
 
+uint8_t flash_jedec_id()
+{
+    flash_select();
+    flash_write(0x9f);
+    uint8_t id = flash_read();
+    flash_deselect();
+    return id;
+}
+
+uint8_t flash_busy()
+{
+    return !!(flash_status() & FLASH_STATUS1_BUSY);
+}
+
 // Wait for the busy flag to clear
 void flash_wait()
 {
-	while(flash_status() & FLASH_STATUS1_BUSY);
+	while(flash_busy());
 }
 
 // Send write enable command
