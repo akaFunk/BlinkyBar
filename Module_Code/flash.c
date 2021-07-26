@@ -92,6 +92,18 @@ void flash_write_enable()
     flash_deselect();
 }
 
+void flash_sector_erase(uint16_t page)
+{
+    flash_write_enable();
+
+    flash_select();
+    flash_write(0x20);
+    flash_write((page>>8)&0xff);    // Write page number (= address>>8)
+    flash_write(page&0xff);
+    flash_write(0x00);              // Lowest address byte is always 0, as we want to write a complete page
+    flash_deselect();
+}
+
 // Erase the complete chip, will return once its done
 void flash_chip_erase()
 {
@@ -100,12 +112,10 @@ void flash_chip_erase()
 	flash_select();
 	flash_write(0xC7);
 	flash_deselect();
-	
-	flash_wait();  // Wait to finish operation
 }
 
 // Write a full page of 256 bytes into page number "page"
-void flash_write_block(uint16_t page, uint8_t* data)
+void flash_write_page(uint16_t page, uint8_t* data)
 {
 	uint16_t i;
 
@@ -123,13 +133,10 @@ void flash_write_block(uint16_t page, uint8_t* data)
 		flash_write(data[i]);
 
     flash_deselect();
-	
-	// Wait for data to be written
-	flash_wait();
 }
 
 // Read a complete block from the flash, identified by the page number
-void flash_read_block(uint16_t page, uint8_t* data)
+void flash_read_page(uint16_t page, uint8_t* data)
 {
 	uint16_t i;
 
@@ -164,4 +171,18 @@ void flash_read_cont_read(uint8_t cnt, uint8_t* data)
 void flash_read_cont_stop()
 {
 	flash_deselect();
+}
+
+void flash_suspend()
+{
+    flash_select();
+    flash_write(0x75);
+    flash_deselect();
+}
+
+void flash_resume()
+{
+    flash_select();
+    flash_write(0x7a);
+    flash_deselect();
 }

@@ -41,13 +41,18 @@ uint8_t flash_jedec_id();
 uint8_t flash_busy();
 void flash_wait();
 void flash_write_enable();
+void flash_sector_erase(uint16_t page);
 void flash_chip_erase();
-void flash_write_block(uint16_t page, uint8_t* data);
-void flash_read_block(uint16_t page, uint8_t* data);
+void flash_write_page(uint16_t page, uint8_t* data);
+void flash_read_page(uint16_t page, uint8_t* data);
 
 // Continous read functions
 void flash_read_cont_start(uint16_t page);
 void flash_read_cont_read(uint8_t cnt, uint8_t* data);
 void flash_read_cont_stop();
+
+// Suspend/Resume program/erase
+void flash_suspend();
+void flash_resume();
 
 #endif
