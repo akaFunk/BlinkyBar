@@ -12,7 +12,8 @@ import {
     faSun,
     faThermometerHalf,
     faArrowsAltH,
-    faRedo
+    faRedo,
+    faEllipsisH
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
@@ -26,6 +27,7 @@ library.add(faStop)
 library.add(faTimes)
 library.add(faArrowsAltH)
 library.add(faRedo)
+library.add(faEllipsisH)
 
 createApp(App)
     .component('font-awesome-icon', FontAwesomeIcon)

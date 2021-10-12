@@ -7,3 +7,5 @@ __pycache__
 .idea/
 *.o
 *.elf
+*.s
+

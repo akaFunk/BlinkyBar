@@ -15,12 +15,12 @@ PROGRAMMER=atmelice_isp
 PORT=usb
 
 BIN=blinkybar_module
-OBJS=main.o uart.o fifo.o ws2812b.o flash.o
+OBJS=main.o uart.o fifo.o ws2812b.o flash.o flash_sm.o
 AVRDUDE=avrdude
 CC=avr-gcc
 OBJCOPY=avr-objcopy
 DEVICE=ATMEGA328P
-CFLAGS=-Os -DF_CPU=8000000UL -mmcu=atmega328p
+CFLAGS=-Os -DF_CPU=8000000UL -mmcu=atmega328p -Wall
 
 ${BIN}.hex: ${BIN}.elf
 	${OBJCOPY} -O ihex -R .eeprom $< $@
