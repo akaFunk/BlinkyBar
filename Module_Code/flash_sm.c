@@ -1,3 +1,12 @@
+/*
+As the erase progress for a full image might be quite long this implements the
+elegant solution. The unused flash area will be erased while the flash has
+nothing better to do. If there is a new page of data from the host to be written
+to the flash, these functions will pause a current erase process, write the data
+and resume the erase if required. If there is not space left, a page will be
+erased and the data is written.
+*/
+
 #include "flash_sm.h"
 #include "flash.h"
 #include <stdbool.h>
@@ -31,7 +40,7 @@ void flash_sm_tick()
     if(erasing && !flash_busy())
     {
         erasing = false;
-        erase_next += PAGES_PER_SECTOR;
+        erase_next += PAGES_PER_SECTOR;  // The potential overflow is intended
         flash_sm_erase_next();
     }
     // If we are currently not erasing, start the next erase
@@ -51,7 +60,7 @@ void flash_sm_erase_next()
 // Start a new image
 void flash_sm_image_new()
 {
-    image_start += image_length;
+    image_start += image_length;  // The potential overflow is intended
     image_length = 0;
 }
 
@@ -59,6 +68,7 @@ void flash_sm_erase_wait()
 {
     flash_wait();
     erasing = false;
+    erase_next += PAGES_PER_SECTOR;  // The potential overflow is intended
 }
 
 // Append a full page to the current image
@@ -76,7 +86,6 @@ void flash_sm_image_append(uint8_t* data)
 
         // Write the data
         flash_write_page(image_start + image_length, data);
-        image_length++;
         flash_wait();
     }
     else if(!enough_space && !erasing)
@@ -87,7 +96,6 @@ void flash_sm_image_append(uint8_t* data)
 
         // Write the data
         flash_write_page(image_start + image_length, data);
-        image_length++;
         flash_wait();
     }
     else if(enough_space && erasing)
@@ -97,7 +105,6 @@ void flash_sm_image_append(uint8_t* data)
 
         // Write the data and wait for completion
         flash_write_page(image_start + image_length, data);
-        image_length++;
         flash_wait();
 
         // Resume erase
@@ -107,7 +114,7 @@ void flash_sm_image_append(uint8_t* data)
     {
         // Just write the data and wait for completion
         flash_write_page(image_start + image_length, data);
-        image_length++;
         flash_wait();
     }
+    image_length++;
 }

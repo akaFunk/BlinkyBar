@@ -4,8 +4,10 @@
 #include "fifo.h"
 #include "ws2812b.h"
 #include "flash.h"
+#include "flash_sm.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
+#include <string.h>
 
 #define RET_EN_DDR                  DDRB
 #define RET_EN_PORT                 PORTB
@@ -95,10 +97,39 @@ int main()
     ws2812b_init();
     uart_init();
     flash_init();
+    flash_sm_init();
     sei();
 
     // TODO: Shutdown ALL LEDs
     display_status(0);
+
+    // DEBUG - Test flash image write and automatic erase
+    
+
+    // DEBUG - Test flash block write and read process
+    RET_EN_PORT &= ~(1<<RET_EN_PIN);  // Enable return path for debug
+    uart_putcc("\r\nStarted\r\n");
+    flash_chip_erase();
+    uart_putcc("Chip erased\r\n");
+    uint8_t data[256];
+    strcpy(data, "Hello world!\r\n");
+    flash_write_page(1, data);
+    uart_putcc("Write done\r\n");
+    for(int i = 0; i < 256; i++)
+        data[i] = 'x';
+    flash_read_cont_start(1);
+    uart_putcc("Read started\r\n");
+    while(1)
+    {
+        uint8_t data;
+        flash_read_cont_read(1, &data);
+        if(data == 0 || data == 0xff)
+            break;
+        uart_putc(data);
+    }
+    flash_read_cont_stop();
+    uart_putcc("Read done\r\n");
+
 
     message_t msg;  // message buffer
     uint8_t counter = 0;
