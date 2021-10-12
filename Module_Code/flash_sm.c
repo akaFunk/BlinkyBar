@@ -1,6 +1,7 @@
 /*
-As the erase progress for a full image might be quite long this implements the
-elegant solution. The unused flash area will be erased while the flash has
+Flash State Machine
+As the erase progress for a full image might be quite long, this file implements
+the elegant solution. The unused flash area will be erased while the flash has
 nothing better to do. If there is a new page of data from the host to be written
 to the flash, these functions will pause a current erase process, write the data
 and resume the erase if required. If there is not space left, a page will be
@@ -18,7 +19,7 @@ erased and the data is written.
 bool erasing;                               // True if there is currently an erase in progress
 uint16_t image_start;                       // Page number where the current image starts
 uint16_t image_length;                      // Length of the current image, given in number of pages
-uint16_t erase_next;                        // Page number of the next page to erase
+uint16_t erase_next;                        // Page number of the next sector to erase
 
 void flash_sm_init()
 {
@@ -29,7 +30,7 @@ void flash_sm_init()
     // Erase the first sector
     flash_sector_erase(image_start);
     
-    // Wait for the erase to actually finish, then increment page_free
+    // Wait for the erase to actually finish, then set erase_next
     flash_wait();
     erase_next = PAGES_PER_SECTOR;
 }
@@ -41,7 +42,6 @@ void flash_sm_tick()
     {
         erasing = false;
         erase_next += PAGES_PER_SECTOR;  // The potential overflow is intended
-        flash_sm_erase_next();
     }
     // If we are currently not erasing, start the next erase
     if(!erasing)
@@ -74,18 +74,19 @@ void flash_sm_erase_wait()
 // Append a full page to the current image
 void flash_sm_image_append(uint8_t* data)
 {
-    // Make sure that there is no erase process and that there is enough free space
+    // Make sure that there is no erase process and that there is enough free space.
     // If there is not enough space, wait for the erase process to finish, otherwise
     // suspend it. If There is not enough space and there is currently no erase process
     // running, start a new one and wait for it to finish.
-    bool enough_space = image_start + image_length != erase_next;
+    uint16_t page = image_start + image_length;
+    bool enough_space = page != erase_next;
 
     if(!enough_space && erasing)
     {
         flash_sm_erase_wait();
 
         // Write the data
-        flash_write_page(image_start + image_length, data);
+        flash_write_page(page, data);
         flash_wait();
     }
     else if(!enough_space && !erasing)
@@ -95,7 +96,7 @@ void flash_sm_image_append(uint8_t* data)
         flash_sm_erase_wait();
 
         // Write the data
-        flash_write_page(image_start + image_length, data);
+        flash_write_page(page, data);
         flash_wait();
     }
     else if(enough_space && erasing)
@@ -104,7 +105,7 @@ void flash_sm_image_append(uint8_t* data)
         flash_suspend();
 
         // Write the data and wait for completion
-        flash_write_page(image_start + image_length, data);
+        flash_write_page(page, data);
         flash_wait();
 
         // Resume erase
@@ -113,7 +114,7 @@ void flash_sm_image_append(uint8_t* data)
     else if(enough_space && !erasing)
     {
         // Just write the data and wait for completion
-        flash_write_page(image_start + image_length, data);
+        flash_write_page(page, data);
         flash_wait();
     }
     image_length++;
