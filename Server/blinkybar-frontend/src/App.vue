@@ -27,6 +27,7 @@
     <toggle-switch caption="Mirror" icon="arrows-alt-h" v-model="mirror"/>
     <toggle-switch caption="Repeat" icon="redo" v-model="repeat"/>
     <toggle-switch caption="Allow scaling" icon="expand-alt" v-model="allow_scaling"/>
+    <toggle-switch caption="Pixel mode" icon="ellipsis-h" v-model="pixel_mode"/>
 
     <button class="push-btn" @click="trigger">
       <template v-if="progress_status == 'ready'">
@@ -46,6 +47,7 @@
     Trigger delay: {{ trigger_delay }}<br/>
     Mirror: {{ mirror }}<br/>
     Repeat: {{ repeat }}<br/>
+    Pixel Mode: {{ pixel_mode }}<br/>
     Allow scaling: {{ allow_scaling }}<br/>
     Progress status: {{ progress_status }}<br/>
     Progress value: {{ progress_value }}<br/>
@@ -85,6 +87,7 @@ export default {
       allow_scaling: true,
       repeat: false,
       color_temperature: NaN,
+      pixel_mode: true,
       image_hash: '',
       progress_status: '',
       progress_value: 0,
@@ -122,6 +125,7 @@ export default {
         this.repeat = data.repeat;
         this.allow_scaling = data.allow_scaling;
         this.color_temperature = data.color_temperature;
+        this.pixel_mode = data.pixel_mode;
       }
     },
     update(param, value) {
@@ -165,6 +169,9 @@ export default {
     },
     allow_scaling(newVal) {
       this.update('allow_scaling', newVal);
+    },
+    pixel_mode(newVal) {
+      this.update('pixel_mode', newVal);
     },
   },
   created() {

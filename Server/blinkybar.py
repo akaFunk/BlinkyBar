@@ -310,6 +310,7 @@ class ModuleController(Thread):
             "mirror": False,
             "allow_scaling": True,
             "repeat": False,
+            "pixel_mode": True,
             "image_hash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
             "progress_status": "noimage",
             "progress_value": 0.0,
@@ -397,6 +398,9 @@ class ModuleController(Thread):
             elif command_data["command"] == "set_repeat":
                 # TODO: Send new repeat value to microcontroller
                 log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
+            elif command_data["command"] == "set_pixel_mode":
+                # TODO: Send new pixel_mode value to microcontroller
+                log_info(f"Sent pixel_mode value of {self.led_settings['pixel_mode']} to modules")
             elif command_data["command"] == "trigger":
                 self.led_settings["progress_status"] = "playing"
                 self.led_settings["progress_value"] = 0.0
@@ -490,6 +494,12 @@ class ModuleController(Thread):
         self.led_settings["allow_scaling"] = allow_scaling
         # Update the image
         self.update_image()
+
+    def set_pixel_mode(self, pixel_mode):
+        self.led_settings["pixel_mode"] = pixel_mode
+        # Send pixel_mode value to modules
+        self.command_queue.put({"command": "set_pixel_mode"})
+
     
     def trigger(self):
         if self.playing:
@@ -514,7 +524,7 @@ class WebServer(object):
         return open(os.path.join(static_dir, "index.html"))
     
     @cherrypy.expose
-    def settings(self, speed=None, brightness=None, trigger_delay=None, mirror=None, allow_scaling=None, repeat=None, color_temperature=None):
+    def settings(self, speed=None, brightness=None, trigger_delay=None, mirror=None, allow_scaling=None, repeat=None, color_temperature=None, pixel_mode=None):
         # Create a copy of the current settings dict
         retval = dict(self.controller.led_settings)
         retval["success"] = False
@@ -581,6 +591,14 @@ class WebServer(object):
             else:
                 retval["error_msg"] = "allow_scaling is out of range"
                 return ujson.dumps(retval, indent=4)
+        if pixel_mode is not None:
+            if pixel_mode.lower() in ['true', '1',]:
+                pixel_mode = True
+            elif pixel_mode.lower() in ['false', '0',]:
+                pixel_mode = False
+            else:
+                retval["error_msg"] = "pixel_mode is out of range"
+                return ujson.dumps(retval, indent=4)
 
         # All values seem to be ok, update the state
         if speed is not None:
@@ -601,6 +619,9 @@ class WebServer(object):
         if repeat is not None:
             self.controller.set_repeat(repeat)
         
+        if pixel_mode is not None:
+            self.controller.set_pixel_mode(pixel_mode)
+
         if allow_scaling is not None:
             self.controller.set_allow_scaling(allow_scaling)
 
