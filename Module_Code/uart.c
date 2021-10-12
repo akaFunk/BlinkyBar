@@ -53,16 +53,17 @@ void uart_putcc(const char* string)
     }
 }
 
-void uart_puti(uint32_t number)
+void uart_putu32(uint32_t number)
 {
     char s[7];
-    itoa(number, s, 10);
+    utoa(number, s, 10);
     uart_putcc(s);
 }
 
-void uart_putd(double number)
+void uart_putb(bool num)
 {
-    char buffer[21];
-    dtostrf(number, 20, 10, buffer);
-    uart_putcc(buffer);
+    if(num)
+        uart_putc('1');
+    else
+        uart_putc('0');
 }

@@ -10,6 +10,7 @@ erased and the data is written.
 
 #include "flash_sm.h"
 #include "flash.h"
+#include "uart.h"
 #include <stdbool.h>
 
 #define FLASH_PAGES         65536           // Number of pages (256 bytes) the flash provides
@@ -33,6 +34,9 @@ void flash_sm_init()
     // Wait for the erase to actually finish, then set erase_next
     flash_wait();
     erase_next = PAGES_PER_SECTOR;
+
+    // Start the erase of the second sector
+    flash_sm_erase_next();
 }
 
 void flash_sm_tick()
@@ -118,4 +122,19 @@ void flash_sm_image_append(uint8_t* data)
         flash_wait();
     }
     image_length++;
+}
+
+void flash_sm_print_state()
+{
+    uart_putcc("image_start: ");
+    uart_putu32(image_start);
+    uart_putcc(", image_length: ");
+    uart_putu32(image_length);
+    uart_putcc(", erasing: ");
+    uart_putb(erasing);
+    uart_putcc(", erase_next: ");
+    uart_putu32(erase_next);
+    uart_putcc(", busy: ");
+    uart_putb(!!flash_busy());
+    uart_putcc("\n");
 }

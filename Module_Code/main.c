@@ -40,7 +40,7 @@
 #define MESSAGE_ADDR_BROADCAST      0xff   // Broadcast address, interprete and redirect to the next one
 #define MESSAGE_ADDR_HOST           0xfe   // Host address
 
-#define MESSAGE_MAX_DATA_SIZE       256
+#define MESSAGE_MAX_DATA_SIZE       256    // Maximum length of data in a message
 
 uint8_t module_addr = 0x00;  // Address of this module
 
@@ -91,48 +91,19 @@ int main()
     LED_DDR |= (1<<LED_PIN);
 
     // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
-    _delay_ms(200);  // TODO: Reset to ~2000
+    _delay_ms(2000);
     PWR_EN_PORT |= (1<<PWR_EN_PIN);
 
     ws2812b_init();
     uart_init();
     flash_init();
-    flash_sm_init();
     sei();
 
     // TODO: Shutdown ALL LEDs
     display_status(0);
 
-    // DEBUG - Test flash image write and automatic erase
-    
-
-    // DEBUG - Test flash block write and read process
-    RET_EN_PORT &= ~(1<<RET_EN_PIN);  // Enable return path for debug
-    uart_putcc("\r\nStarted\r\n");
-    flash_chip_erase();
-    uart_putcc("Chip erased\r\n");
-    uint8_t data[256];
-    strcpy(data, "Hello world!\r\n");
-    flash_write_page(1, data);
-    uart_putcc("Write done\r\n");
-    for(int i = 0; i < 256; i++)
-        data[i] = 'x';
-    flash_read_cont_start(1);
-    uart_putcc("Read started\r\n");
-    while(1)
-    {
-        uint8_t data;
-        flash_read_cont_read(1, &data);
-        if(data == 0 || data == 0xff)
-            break;
-        uart_putc(data);
-    }
-    flash_read_cont_stop();
-    uart_putcc("Read done\r\n");
-
-
     message_t msg;  // message buffer
-    uint8_t counter = 0;
+    //uint8_t counter = 0;
     while(1)
     {
         // Wait for the magic word
