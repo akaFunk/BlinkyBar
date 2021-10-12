@@ -91,7 +91,7 @@ int main()
     LED_DDR |= (1<<LED_PIN);
 
     // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
-    _delay_ms(2000);
+    _delay_ms(200);  // TODO: Reset to ~2000
     PWR_EN_PORT |= (1<<PWR_EN_PIN);
 
     ws2812b_init();
@@ -101,6 +101,12 @@ int main()
 
     // TODO: Shutdown ALL LEDs
     display_status(0);
+
+    // Test flash
+    //debug_flash()
+
+    // Test flash state machine
+    //debug_flash_sm();
 
     message_t msg;  // message buffer
     //uint8_t counter = 0;
@@ -207,4 +213,56 @@ void display_status(uint8_t status)
     }
     ws2812b_send_column(status_led_data, 8);
     _delay_ms(1);
+}
+
+void debug_flash_sm()
+{
+    // DEBUG - Test flash image write and automatic erase
+    uint8_t data[256];
+    RET_EN_PORT &= ~(1<<RET_EN_PIN);  // Enable return path for debug
+    _delay_ms(200);  // wait a moment for the uart line to stabilize
+    flash_sm_init();
+    flash_sm_print_state();
+    _delay_ms(100);
+    flash_sm_print_state();
+    flash_sm_tick();
+    flash_sm_print_state();
+    flash_sm_image_new();
+    flash_sm_print_state();
+    flash_sm_image_append(data);
+    flash_sm_print_state();
+    flash_sm_image_new();
+    flash_sm_print_state();
+    flash_sm_image_append(data);
+    flash_sm_print_state();
+    for(int i = 0; i < 33; i++)
+        flash_sm_image_append(data);
+    flash_sm_print_state();
+}
+
+void debug_flash()
+{
+    uint8_t data[256];
+    // DEBUG - Test flash block write and read process
+    RET_EN_PORT &= ~(1<<RET_EN_PIN);  // Enable return path for debug
+    uart_putcc("\r\nStarted\r\n");
+    flash_chip_erase();
+    uart_putcc("Chip erased\r\n");
+    strcpy((char*)data, "Hello world!\r\n");
+    flash_write_page(1, data);
+    uart_putcc("Write done\r\n");
+    for(int i = 0; i < 256; i++)
+        data[i] = 'x';
+    flash_read_cont_start(1);
+    uart_putcc("Read started\r\n");
+    while(1)
+    {
+        uint8_t data;
+        flash_read_cont_read(1, &data);
+        if(data == 0 || data == 0xff)
+            break;
+        uart_putc(data);
+    }
+    flash_read_cont_stop();
+    uart_putcc("Read done\r\n");
 }
