@@ -80,6 +80,8 @@ void message_tx(message_t* msg)
 void process_message(message_t* msg);
 void transmit_response(uint8_t success);
 void display_status(uint8_t status);
+void debug_flash();
+void debug_flash_sm();
 
 int main()
 {
