@@ -46,9 +46,9 @@ void flash_chip_erase();
 void flash_write_page(uint16_t page, uint8_t* data);
 void flash_read_page(uint16_t page, uint8_t* data);
 
-// Continous read functions
+// Continuous read functions
 void flash_read_cont_start(uint16_t page);
-void flash_read_cont_read(uint8_t cnt, uint8_t* data);
+void flash_read_cont_read(uint8_t* data, uint8_t size);
 void flash_read_cont_stop();
 
 // Suspend/Resume program/erase

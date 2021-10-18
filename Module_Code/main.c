@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include "config.h"
 #include "uart.h"
 #include "fifo.h"
 #include "ws2812b.h"
@@ -31,23 +32,21 @@
 #define MESSAGE_TYPE_RET_ENABLE     0x11    // Enable the return path, len=0, no ACK
 #define MESSAGE_TYPE_PING           0x20    // Ping message, response with an ACK
 #define MESSAGE_TYPE_STAT           0x30    // Display a status value with the LEDs, len=1
-#define MESSAGE_TYPE_DEL            0x40    // Delete the flash, len=0
-#define MESSAGE_TYPE_DATA           0x41    // Next data block, len=1..256
+#define MESSAGE_TYPE_IMG_NEW        0x40    // Start storing a new image, len=0
+#define MESSAGE_TYPE_IMG_APP        0x41    // Next image data block, len=1..256, must be 256 for all messages except the last one for an image
 #define MESSAGE_TYPE_PREP           0x50    // All data transmitted to modules, prepare for trigger, len=0
+#define MESSAGE_TYPE_TRIG           0x51    // Trigger a column - just for debug purposes, normal operation though TRIGI signal interrupt
 #define MESSAGE_TYPE_ACK            0xf0    // ACK last message (also used as pong), len=0
 #define MESSAGE_TYPE_NACK           0xf1    // NACK last message, len=0
 
-#define MESSAGE_ADDR_BROADCAST      0xff   // Broadcast address, interprete and redirect to the next one
+#define MESSAGE_ADDR_BROADCAST      0xff   // Broadcast address, interpret and redirect to the next one
 #define MESSAGE_ADDR_HOST           0xfe   // Host address
 
 #define MESSAGE_MAX_DATA_SIZE       256    // Maximum length of data in a message
 
-uint8_t module_addr = 0x00;  // Address of this module
-
-// Examples:
-// Set address 0 -> 1: ab02fe00010001
-// Ping 1:             ab10fe010000
-// Ping 0:             ab10fe000000
+uint8_t module_addr =               0x00;  // Address of this module
+uint8_t rgb_data[3*LED_COUNT];             // Buffer for next LED column
+uint16_t current_column =           0;     // Current column index
 
 typedef struct
 {
@@ -131,7 +130,7 @@ int main()
         for(uint16_t k = 0; k < msg.len; k++)
             msg.data[k] = fifo_popc_block(&uart_in_fifo);
 
-        // Got a complete message, interprete it
+        // Got a complete message, interpret it
         if(msg.dst == module_addr || msg.dst == MESSAGE_ADDR_BROADCAST)
             process_message(&msg);
 
@@ -178,14 +177,23 @@ void process_message(message_t* msg)
         // TODO: Send this status value to the LEDs
         display_status(status);
         break;
-    case MESSAGE_TYPE_DEL:
-        // TODO: Delete the flash
+    case MESSAGE_TYPE_IMG_NEW:
+        // Start a new image
+        flash_sm_image_new();
         break;
-    case MESSAGE_TYPE_DATA:
-        // TODO: Copy data to flash
+    case MESSAGE_TYPE_IMG_APP:
+        // Append new image data to the current image
+        flash_sm_image_append(msg->data, msg->len);
         break;
     case MESSAGE_TYPE_PREP:
-        // TODO: Copy first row from flash
+        // Put the flash in continuous read mode and read the first column
+        flash_sm_read_image_start();
+        flash_sm_read_image_data(rgb_data, LED_COUNT*3);
+        break;
+    case MESSAGE_TYPE_TRIG:
+        // Send data to LEDs and load new data after that
+        ws2812b_send_column(rgb_data, LED_COUNT);
+        flash_sm_read_image_data(rgb_data, LED_COUNT*3);
         break;
     }
 
@@ -231,14 +239,14 @@ void debug_flash_sm()
     flash_sm_print_state();
     flash_sm_image_new();
     flash_sm_print_state();
-    flash_sm_image_append(data);
+    flash_sm_image_append(data, 256);
     flash_sm_print_state();
     flash_sm_image_new();
     flash_sm_print_state();
-    flash_sm_image_append(data);
+    flash_sm_image_append(data, 256);
     flash_sm_print_state();
     for(int i = 0; i < 33; i++)
-        flash_sm_image_append(data);
+        flash_sm_image_append(data, 256);
     flash_sm_print_state();
 }
 
@@ -260,7 +268,7 @@ void debug_flash()
     while(1)
     {
         uint8_t data;
-        flash_read_cont_read(1, &data);
+        flash_read_cont_read(&data, 1);
         if(data == 0 || data == 0xff)
             break;
         uart_putc(data);

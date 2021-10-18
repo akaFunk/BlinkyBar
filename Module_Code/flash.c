@@ -4,6 +4,9 @@
 #include <avr/io.h>
 
 // This flash control is for the Winbond W25Q16JV, but many others may be compatible
+// Note: The actual application will not interface directly with the API in
+// this file. Instead the wrapper in flash_sm is used, which will manage the
+// automatic deletion of unused flash areas and things like that.
 
 // Sets up hardware SPI interface and CS pin
 void flash_init()
@@ -150,7 +153,7 @@ void flash_read_page(uint16_t page, uint8_t* data)
 	flash_deselect();
 }
 
-// Start continous read from zero address
+// Start continuous read from zero address
 void flash_read_cont_start(uint16_t page)
 {
     flash_select();
@@ -160,14 +163,14 @@ void flash_read_cont_start(uint16_t page)
     flash_write(0x00);              // Lowest address byte is always 0, as we want to write a complete page
 }
 
-// Read a block of cnt bytes in continous mode
-void flash_read_cont_read(uint8_t cnt, uint8_t* data)
+// Read a block of cnt bytes in continuous mode
+void flash_read_cont_read(uint8_t* data, uint8_t size)
 {
-    for(uint8_t i = 0; i < cnt; i++)
+    for(uint8_t i = 0; i < size; i++)
         data[i] = flash_read();
 }
 
-// Stop continous read
+// Stop continuous read
 void flash_read_cont_stop()
 {
 	flash_deselect();
