@@ -46,7 +46,7 @@ def log_debug(msg):
 
 
 # The packet router will abstract the two strings of modules and the module orientation. It will
-# initialize the modules, give them an address. The class will provide the number of modules
+# initialize the modules and give them an address. The class will provide the number of modules
 # available and the height in pixels. It also converts the module_nr to the correct string and
 # module address. The module_nr is a number identifying the modules starting at the top with 0
 # and counting up for modules below that.
@@ -108,7 +108,7 @@ class PacketRouter:
         #return
 
 
-        # Assign addresses to each module on each string until noone responds any more
+        # Assign addresses to each module on each string until no one responds any more
         port_list = [self.ser_port_top, self.ser_port_bottom]
         port_name_list = ["top", "bottom"]
         module_cnt = [0, 0]
@@ -117,36 +117,40 @@ class PacketRouter:
             port = port_list[p]
             port_name = port_name_list[p]
             if port is None:
-                log_error(f"Skipping detection of modules on port {port_name} port as it is not opened")
+                log_error(f"Skipping detection of modules on port {port_name} as it is not opened")
                 continue
 
             # Disable the return path for all modules
+            log_info(f"Disabling all return paths on port {port_name}")
             self.send_ret_disable(port, MESSAGE_ADDR_BROADCAST)
 
             # Reset all module addresses to 0
+            log_info(f"Resetting all module addresses on port {port_name}")
             self.send_addr_set(port, MESSAGE_ADDR_BROADCAST, 0)
             
-            addr = 1  # First module address is 1, as 0 is used as reset address
+            addr = 1  # First module address is 1, as 0 is used as default address after a reset
             while True:
+                log_info(f"Searching for module at address {addr} on port {port_name}")
                 # Send the new address to the next module
                 self.send_addr_set(port, 0, addr)
 
                 # Enable the return path of that new module
-                self.send_ret_enable(port, addr)
-
-                # Send a ping to see if the module does exist
-                if not self.send_ping(port, addr):
+                if not self.send_ret_enable(port, addr):
                     # No answer from this module, break the addressing loop
+                    log_info(f"Got no answer, so there is no other module")
                     break
+
                 # Otherwise add this module to the list
+                log_info(f"Found module with new address {addr} on port {port_name}")
                 self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
 
                 # And disable the return path of this module again
+                log_info(f"Disabling return of that module")
                 self.send_ret_disable(port, addr)
 
                 addr += 1
             addr -= 1
-            log_info(f"Found {addr} modules on {port_name} port")
+            log_info(f"Found a total of {addr} modules on port {port_name}")
 
             # Now tell the last module of this string to switch on its return path
             if not self.send_ret_enable(port, addr):
@@ -156,6 +160,9 @@ class PacketRouter:
             module_cnt[p] = addr
         # TODO: Report the module_cnt back to ModuleController - we also need a queue here...
 
+    # Returns the number of detected modules
+    def get_num_modules(self):
+        return len(self.module_port_addr_mirror)
     
     # Send a new address value to a module
     def send_addr_set(self, port, addr, new_addr):
@@ -166,16 +173,14 @@ class PacketRouter:
     # Send MESSAGE_TYPE_RET_DISABLE message to a module
     def send_ret_disable(self, port, addr):
         msg = Message(MESSAGE_TYPE_RET_DISABLE, [], addr)
-        # Send this message twice to make absolutely sure every module got it
         log_debug(f"Sending return disable message to {addr} on {port.port}")
         self.send_message_port(port, msg, False)
     
     # send MESSAGE_TYPE_RET_ENABLE to a module
     def send_ret_enable(self, port, addr):
         msg = Message(MESSAGE_TYPE_RET_ENABLE, [], addr)
-        # Send this message twice to make absolutely sure every module got it
         log_debug(f"Sending return enable message to {addr} on {port.port}")
-        self.send_message_port(port, msg, False)
+        return self.send_message_port(port, msg, True)
     
     def send_ping(self, port, addr):
         msg = Message(MESSAGE_TYPE_PING, [], addr)
@@ -192,7 +197,7 @@ class PacketRouter:
         return self.send_message_port(port, msg, expect_ack)
     
     def send_message_port(self, port: Serial, msg: Message, expect_ack: bool = True):
-        log_info("Sending message: 0x" + msg.to_bytes().hex())
+        log_debug("Sending message: 0x" + msg.to_bytes().hex())
 
         # Make sure the port is opened
         if port is None:
@@ -204,30 +209,31 @@ class PacketRouter:
 
         # Send message
         port.write(msg.to_bytes())
-        log_info("Message sent")
+        log_debug("Message sent")
 
         # If not ACK is expected, we are done at this point
         if not expect_ack:
-            log_info("Not expecting ACK...")
+            log_debug("Not expecting ACK...")
             return True
 
-        log_info("Waiting for ACK")
+        log_debug("Waiting for ACK...")
         # Wait for ACK
         ans = self.get_message(port)
         if ans is None:
+            log_debug("Got no ACK")
             return False
         
         # Check answer
         if ans.type != MESSAGE_TYPE_ACK:
-            log_error(f"Got message, but no ACK:")
-            print(ans.to_bytes())
+            log_error(f"Got message, but no ACK: {ans.to_bytes()}")
             return False
         
         # Got an ACK
+        log_debug("Got ACK")
         return True
 
     def get_message(self, port: Serial):
-        log_info("Receiving message")
+        log_debug("Receiving message")
 
         # Make sure the port is opened
         if port is None:
@@ -245,10 +251,11 @@ class PacketRouter:
                 continue
             else:
                 break
-        # Magic byte received
+
+        # Magic byte received, create a new message instance
+        log_debug("Got magic byte")
         ans = Message()
         ans.magic = MESSAGE_MAGIC
-        log_info("Got magic byte")
 
         # Read header
         header = port.read(5)
@@ -259,7 +266,7 @@ class PacketRouter:
         ans.src = header[1]
         ans.dst = header[2]
         ans.len = header[4]*256 + header[3]
-        log_info(f"Got header: {ans.to_bytes().hex()}")
+        log_debug(f"Got header: {ans.to_bytes().hex()}")
         if ans.len > MESSAGE_MAX_DATA_SIZE:
             log_error(f"Got message header with too high len value of {ans.len}")
             return None
@@ -292,13 +299,14 @@ class ModuleController(Thread):
         Thread.__init__(self, daemon=True)
         self.command_queue = command_queue
         self.router = PacketRouter(config["port_up"], config["port_down"])
+        self.module_cnt = self.router.get_num_modules()
         self.uploading_image = False
         self.playing = False
         self.image = Image.open("image.png")
         self.progress_extra_steps = 0
-        self.height = 120 # TODO: This should come from the stick
+        self.height = self.module_cnt*45
 
-        # TODO: After getting the size of the stick, the scaled image should be calculated
+        log_info(f"Found {self.module_cnt} modules with {self.height} pixels")
 
         self.led_settings = {
             "success": True,
@@ -327,7 +335,7 @@ class ModuleController(Thread):
     def run(self):
         while True:
             command_data = self.command_queue.get()
-            log_info("Got command: " + command_data["command"])
+            log_debug("Got command: " + command_data["command"])
             if command_data["command"] == "init_modules":
                 # Send a reset command
                 self.router.find_modules()
@@ -382,11 +390,11 @@ class ModuleController(Thread):
                 log_info("Updated scaled image hash")
             elif command_data["command"] == "upload_image":
                 self.uploading_image = True
-                self.update_progress("processing", "Uploading image", 0.4)
-                for k in range(10):
-                    log_info(f"Uploading image... {k+1}/10")
+                self.update_progress("processing", "Uploading image", 0.0)
+                for k in range(21):
+                    log_info(f"Uploading image... {(k+1)/21*100:.0f} %")
                     time.sleep(0.2)
-                    self.led_settings["progress_value"] = 0.4+0.6*k/9
+                    self.led_settings["progress_value"] = k/20
                     if not self.uploading_image:
                         log_info("Cancelled upload")
                         self.update_progress("noimage", "", 0.0)
@@ -467,16 +475,19 @@ class ModuleController(Thread):
         self.command_queue.put({"command": "set_speed"})
 
     def set_brightness(self, brightness):
+        log_debug(f"Setting brightness to {brightness}")
         self.led_settings["brightness"] = brightness
         # Update the image
         self.update_image()
     
     def set_color_temperature(self, color_temperature):
+        log_debug(f"Setting color temperature to {color_temperature} K")
         self.led_settings["color_temperature"] = color_temperature
         # Update the image
         self.update_image()
 
     def set_trigger_delay(self, trigger_delay):
+        log_debug(f"Setting trigger delay to {trigger_delay} s")
         self.led_settings["trigger_delay"] = trigger_delay
         log_info(f"Set trigger delay to {self.led_settings['trigger_delay']} s")
     
