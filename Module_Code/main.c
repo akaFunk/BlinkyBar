@@ -100,6 +100,7 @@ int main()
     ws2812b_init();
     uart_init();
     flash_init();
+    flash_sm_init();
     sei();
 
     // TODO: Shutdown ALL LEDs
