@@ -163,6 +163,19 @@ class PacketRouter:
         msg = Message(MESSAGE_TYPE_PING, [], addr)
         log_debug(f"Sending ping to {addr} on {port.port}")
         return self.send_message_port(port, msg)
+    
+    # Send a prepare message, which will cause the modules to load the first image column
+    # from flash into ram.
+    def send_prep(self, module_nr: int):
+        msg = Message(MESSAGE_TYPE_PREP)
+        return self.send_message_module(module_nr, msg)
+    
+    # Send a trigger message a module
+    # Note: This is only for debug purposes, the modules are normally triggered by 
+    # a hardware line all together and with proper timing.
+    def send_trig(self, module_nr: int):
+        msg = Message(MESSAGE_TYPE_TRIG)
+        return self.send_message_module(module_nr, msg)
 
     def send_message_module(self, module_nr: int, msg: Message, expect_ack = True):
         # Convert module_nr to the serial port and the module address
@@ -282,6 +295,7 @@ class ModuleController(Thread):
         self.router = PacketRouter(config["port_up"], config["port_down"], config["baudrate"])
         self.module_cnt = self.router.get_num_modules()
         self.height = self.module_cnt*45
+        self.width = 0
         self.uploading_image = False
         self.playing = False
         self.image = Image.open("image.png")
@@ -357,10 +371,10 @@ class ModuleController(Thread):
 
                 # Scale image
                 # TODO: Only if it has to be rescaled...
-                width = round(self.height*self.image.size[0]/self.image.size[1])
-                log_debug(f"Scaling image to {width}x{self.height}")
-                self.image_scaled = self.image_scaled.resize((width, self.height))
-                log_debug(f"Image resized to {width}x{self.height}")
+                self.width = round(self.height*self.image.size[0]/self.image.size[1])
+                log_debug(f"Scaling image to {self.width}x{self.height}")
+                self.image_scaled = self.image_scaled.resize((self.width, self.height))
+                log_debug(f"Image resized to {self.width}x{self.height}")
 
                 # Mirror image
                 if self.led_settings["mirror"]:
@@ -409,7 +423,7 @@ class ModuleController(Thread):
                         data_cut = module_data[mid][bid*256:(bid+1)*256]
                         data_cut = np.frombuffer(data_cut, dtype=np.uint8)
                         #data_cut = np.array([255,255,255], dtype=np.uint8)
-                        data_cut = np.zeros(106, dtype=np.uint8)
+                        #data_cut = np.zeros(106, dtype=np.uint8)
                         if not self.router.send_image_append(mid, data_cut):
                             log_error(f"Unable to send image data to module {mid}")
                             break
@@ -434,31 +448,36 @@ class ModuleController(Thread):
                 self.led_settings["progress_status"] = "playing"
                 self.led_settings["progress_value"] = 0.0
                 self.playing = True
+
+                # Wait the trigger delay, while updating the progress values
                 delay = self.led_settings['trigger_delay']
-                log_info(f"Got trigger command, will spleep {delay} s")
+                log_info(f"Got trigger command, will sleep {delay} s")
                 slept = 0.0
-                while slept < self.led_settings['trigger_delay']:
+                while slept < delay:
                     time.sleep(0.05)
                     slept += 0.05
                     self.led_settings["progress_value"] = slept/delay
                     if not self.playing:
                         self.led_settings["progress_status"] = "ready"
                         break
-                self.led_settings["progress_value"] = 0.0
-                if not self.playing:
-                    continue
-                # TODO: Send trigger to microcontroller
-                log_info(f"Triggered")
 
-                # Fake loading bar for playback
+                # TODO: Send trigger to microcontroller on main board
                 # TODO: Find something how we can know the current state without estimating it
-                for k in range(10):
-                    self.led_settings["progress_value"] = k/9.0
-                    time.sleep(1)
-                    if not self.playing:
-                        break
-                self.led_settings["progress_status"] = "ready"
+
+                # TODO: This is just for debug purposes: Send trigger directly to modules with 1s delay between each trigger
+                log_info(f"Will trigger {self.width} times")
                 self.led_settings["progress_value"] = 0.0
+                if not self.router.send_prep(0):
+                    log_error("Unable to send prepare message")
+                time.sleep(1)
+                for column in range(self.width):
+                    if not self.router.send_trig(0):
+                        log_error("Unable to send trigger message")
+                    log_info(f"Triggered")
+                    time.sleep(1)
+                self.led_settings["progress_value"] = 0.0
+                self.led_settings["progress_status"] = "ready"
+                log_info(f"Playback done")
 
 
     def init_modules(self):
