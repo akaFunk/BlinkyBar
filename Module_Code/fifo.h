@@ -10,6 +10,7 @@ typedef struct
 	uint8_t* rptr;
 	uint8_t* wptr;
 	uint8_t* data;
+	uint8_t* end;
 } fifo_t;
 
 void fifo_init(fifo_t* fifo, uint16_t size, uint8_t* data);
