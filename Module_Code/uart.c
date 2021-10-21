@@ -24,7 +24,6 @@ void uart_init()
         UDR0;
     } while (UCSR0A & (1 << RXC0));
     UCSR0A = (1 << RXC0) | (1 << TXC0) | (1<<U2X0);
-    return;
 }
 
 ISR(USART_RX_vect)
@@ -33,9 +32,6 @@ ISR(USART_RX_vect)
 
     // Put data into fifo
     fifo_pushc(&uart_in_fifo, data);
-
-    // Echo data
-    //uart_putc(data);
 }
 
 void uart_putc(uint8_t data)
