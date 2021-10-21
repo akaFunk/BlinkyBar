@@ -82,6 +82,8 @@ void display_status(uint8_t status);
 void debug_flash();
 void debug_flash_sm();
 
+static message_t msg;  // message buffer
+
 int main()
 {
     // Init GPIOs
@@ -109,7 +111,6 @@ int main()
     // Test flash state machine
     //debug_flash_sm();
 
-    message_t msg;  // message buffer
     //uint8_t counter = 0;
     while(1)
     {
@@ -174,7 +175,6 @@ void process_message(message_t* msg)
         if(msg->len != 1)
             return transmit_response(0);
         status = msg->data[0];
-        // TODO: Send this status value to the LEDs
         display_status(status);
         break;
     case MESSAGE_TYPE_IMG_NEW:
