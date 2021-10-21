@@ -160,7 +160,7 @@ void flash_read_cont_start(uint16_t page)
     flash_write(0x03);              // Write read instruction
     flash_write((page>>8)&0xff);    // Write page number (= address>>8)
     flash_write(page&0xff);
-    flash_write(0x00);              // Lowest address byte is always 0, as we want to write a complete page
+    flash_write(0x00);              // Lowest address byte is always 0, as we want to read a complete page
 }
 
 // Read a block of cnt bytes in continuous mode
