@@ -157,6 +157,10 @@ void flash_sm_print_state()
     uart_putu32(image_start);
     uart_putcc(", image_length_page: ");
     uart_putu32(image_length_page);
+    uart_putcc(", image_length_columns: ");
+    uart_putu32(image_length_columns);
+    uart_putcc(", image_extra_bytes: ");
+    uart_putu32(image_extra_bytes);
     uart_putcc(", erasing: ");
     uart_putb(erasing);
     uart_putcc(", reading: ");
@@ -164,7 +168,10 @@ void flash_sm_print_state()
     uart_putcc(", erase_next: ");
     uart_putu32(erase_next);
     uart_putcc(", busy: ");
-    uart_putb(!!flash_busy());
+    if(!reading)
+        uart_putb(!!flash_busy());
+    else
+        uart_putc('?');
     uart_putcc("\n");
 }
 
