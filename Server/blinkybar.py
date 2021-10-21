@@ -282,8 +282,8 @@ class PacketRouter:
     def send_image_append(self, module_nr: int, img_data: np.array):
         # Mirror image data if required
         module = self.module_port_addr_mirror[module_nr]
-        if module["mirror"]:
-            img_data = np.flipud(img_data)
+        #if module["mirror"]:
+        #    img_data = np.flipud(img_data)  # TODO: This is wrong! We need to flip in groups of 3 bytes!
         message = Message(MESSAGE_TYPE_IMG_APP, img_data)
         return self.send_message_module(module_nr, message)
 
