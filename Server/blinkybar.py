@@ -180,12 +180,12 @@ class PacketRouter:
     def send_ret_enable(self, port, addr):
         msg = Message(MESSAGE_TYPE_RET_ENABLE, [], addr)
         log_debug(f"Sending return enable message to {addr} on {port.port}")
-        return self.send_message_port(port, msg, True)
+        return self.send_message_port(port, msg)
     
     def send_ping(self, port, addr):
         msg = Message(MESSAGE_TYPE_PING, [], addr)
         log_debug(f"Sending ping to {addr} on {port.port}")
-        return self.send_message_port(port, msg, True)
+        return self.send_message_port(port, msg)
 
     def send_message_module(self, module_nr: int, msg: Message, expect_ack = True):
         # Convert module_nr to the serial port and the module address
@@ -336,13 +336,18 @@ class ModuleController(Thread):
         # Scale and upload the current image
         self.update_image()
 
+    # This is a separate thread doing all the time-intensive tasks, like scaling the image
+    # or uploading it to the modules.
     def run(self):
         while True:
             command_data = self.command_queue.get()
-            log_debug("Got command: " + command_data["command"])
+            log_debug(f"Processing command: {command_data['command']}")
             if command_data["command"] == "init_modules":
                 # Send a reset command
                 self.router.find_modules()
+                # TODO: We need to update module_cnt and height - maybe also trigger an image upload
+                # TODO: Calling this command will currently do bad things if the arrangement of the
+                # TODO: modules changed.
             elif command_data["command"] == "save_image":
                 self.update_progress("processing", "Saving image", 0.0)
                 # Convert image to RGB
@@ -362,47 +367,82 @@ class ModuleController(Thread):
                 matrix = (r/255.0, 0.0, 0.0, 0.0,
                     0.0, g/255.0, 0.0, 0.0,
                     0.0, 0.0, b/255.0, 0.0)
-                image_scaled = self.image.convert('RGB', matrix)
-                log_info(f"Applied color temperature of {temp_sel} K")
+                self.image_scaled = self.image.convert('RGB', matrix)
+                log_debug(f"Applied color temperature of {temp_sel} K")
 
                 # Apply brightness correction
-                enhancer = ImageEnhance.Brightness(image_scaled)
-                log_info(f"Brightness: {self.led_settings['brightness']}")
-                image_scaled = enhancer.enhance(self.led_settings["brightness"])
-                log_info(f"Applied brightness of {self.led_settings['brightness']*100}%")
+                enhancer = ImageEnhance.Brightness(self.image_scaled)
+                log_debug(f"Brightness: {self.led_settings['brightness']}")
+                self.image_scaled = enhancer.enhance(self.led_settings["brightness"])
+                log_debug(f"Applied brightness of {self.led_settings['brightness']*100}%")
 
                 # TODO: Crop image if required
 
                 # Scale image
                 # TODO: Only if it has to be rescaled...
                 width = round(self.height*self.image.size[0]/self.image.size[1])
-                image_scaled = image_scaled.resize((width, self.height))
-                log_info(f"Image resized to {width}x{self.height}")
+                log_debug(f"Scaling image to {width}x{self.height}")
+                self.image_scaled = self.image_scaled.resize((width, self.height))
+                log_debug(f"Image resized to {width}x{self.height}")
 
                 # Mirror image
                 if self.led_settings["mirror"]:
-                    image_scaled = ImageOps.mirror(image_scaled)
+                    self.image_scaled = ImageOps.mirror(self.image_scaled)
 
                 # Save scaled image
-                image_scaled.save("image_scaled.png")
-                log_info("Saved scaled image")
+                self.image_scaled.save("image_scaled.png")
 
                 # Calculate the hash of the scaled image
-                image_bytes = image_scaled.tobytes()
+                image_bytes = self.image_scaled.tobytes()
                 self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
-                log_info(f"New hash: {self.led_settings['image_hash']}")
-                log_info("Updated scaled image hash")
+                log_debug(f"New image hash: {self.led_settings['image_hash']}")
+                log_info("Processed and saved new image")
             elif command_data["command"] == "upload_image":
                 self.uploading_image = True
                 self.update_progress("processing", "Uploading image", 0.0)
-                for k in range(21):
-                    log_info(f"Uploading image... {(k+1)/21*100:.0f} %")
-                    time.sleep(0.2)
-                    self.led_settings["progress_value"] = k/20
-                    if not self.uploading_image:
-                        log_info("Cancelled upload")
-                        self.update_progress("noimage", "", 0.0)
-                        break
+
+                width = self.image_scaled.size[0]
+                height = self.image_scaled.size[1]
+                if height != self.height:
+                    # This should hopefully never happen...
+                    log_error(f"Cannot upload image: size of scaled image does not match hardware configuration!")
+                    log_error(f"Scaled image height: {height}, hardware height: {self.height}")
+                    break
+                log_info(f"image size: {width}x{height}")
+
+                # Split the image for the modules
+                module_data = []
+                for mid in range(self.module_cnt):
+                    cut_image = self.image_scaled.crop((0, mid*45, width, (mid+1)*45))
+                    cut_data = cut_image.transpose(Image.TRANSPOSE).tobytes()
+                    module_data.append(cut_data)
+
+                # Send the image to the modules in packets of 256 bytes
+                # TODO: This can probably be optimized by sending data to all modules at once
+                # TODO: and then wait for the ACKs. But this would require some rework in the
+                # TODO: ACK management.
+                num_packets = math.ceil(len(module_data[mid])/256)
+                for mid in range(len(module_data)):
+                    # Start a new image for that module
+                    if not self.router.send_image_new(mid):
+                        log_error(f"Unable to send new image command to module {mid}")
+                    self.router.send_image_new(mid)
+                    for bid in range(num_packets):
+                        # Cut the data, convert it to numpy and send it to the module
+                        data_cut = module_data[mid][bid*256:(bid+1)*256]
+                        data_cut = np.frombuffer(data_cut, dtype=np.uint8)
+                        #data_cut = np.array([255,255,255], dtype=np.uint8)
+                        data_cut = np.zeros(106, dtype=np.uint8)
+                        if not self.router.send_image_append(mid, data_cut):
+                            log_error(f"Unable to send image data to module {mid}")
+                            break
+                        progress = (mid*num_packets + bid + 1)/(num_packets*len(module_data))
+                        log_debug(f"Uploading image... {progress*100:.0f} %")
+                        self.led_settings["progress_value"] = progress
+                        if not self.uploading_image:
+                            log_info("Cancelled upload")
+                            self.update_progress("noimage", "", 0.0)
+                            break
                 self.update_progress("ready", "", 0.0)
             elif command_data["command"] == "set_speed":
                 # TODO: Send new speed value to microcontroller
@@ -468,7 +508,7 @@ class ModuleController(Thread):
 
     def upload_image(self):
         # Cancel a currently running upload
-        # TODO: This method is not perfect, if there are a lot of upload commands in a row it may happen that the image is uploaded multiple times
+        # TODO: This method is not perfect: If there are a lot of upload commands in a row it may happen that the image is uploaded multiple times
         if self.uploading_image:
             self.uploading_image = False
         # Add the image upload to the command queue - asynchronously
