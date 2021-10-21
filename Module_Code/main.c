@@ -152,21 +152,18 @@ void process_message(message_t* msg)
             return transmit_response(0);
         // Set the current module address
         module_addr = msg->data[0];
-        display_status(2);
         return;  // don't send ACK
     case MESSAGE_TYPE_RET_DISABLE:
         if(msg->len != 0)
             return transmit_response(0);
         // Disable the RET* transmitter, we don't know how many modules are after us
         RET_EN_PORT |= (1<<RET_EN_PIN);
-        display_status(1);
         return;  // don't send an ACK, no one will get it anyways
     case MESSAGE_TYPE_RET_ENABLE:
         if(msg->len != 0)
             return transmit_response(0);
         // Enable the RET* transmitter
         RET_EN_PORT &= ~(1<<RET_EN_PIN);
-        display_status(4);
         break;
     case MESSAGE_TYPE_PING:
         // Fall through to send ACK
