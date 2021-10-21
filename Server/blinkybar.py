@@ -80,33 +80,10 @@ class PacketRouter:
         
         # Detect modules
         self.find_modules()
-
-        # DEBUG: Send reset message continously
-        #while True:
-        #    self.send_ping()
-        #    time.sleep(0.1)
-
-        # DEBUG: Send a test message
-        #while True:
-        #    msg = Message(MESSAGE_TYPE_PING)
-        #    self.send_message_retry(0, msg, 10)
-        #    time.sleep(1)
-        # DEBUG: Send test status codes
-        #while True:
-        #    for k in range(256):
-        #        msg = Message(MESSAGE_TYPE_STAT, [k], 0)
-        #        self.send_message_module(0, msg, False)
-        #        time.sleep(1)
-        #        log_error("send...")
     
     def find_modules(self):
         log_info("Initializing modules...")
         self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
-
-        # Debug - just add a dummy module
-        #self.module_port_addr_mirror.append({"port": self.ser_port_top, "addr": 0, "mirror": False}) # Add a fake module instead
-        #return
-
 
         # Assign addresses to each module on each string until no one responds any more
         port_list = [self.ser_port_top, self.ser_port_bottom]
