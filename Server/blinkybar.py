@@ -53,7 +53,7 @@ def log_debug(msg):
 # When you send data to one of the modules, PacketRouter will automatically mirror the data for
 # the upper bar.
 class PacketRouter:
-    def __init__(self, ser_port_name_top=None, ser_port_name_bottom=None):
+    def __init__(self, ser_port_name_top, ser_port_name_bottom, baudrate):
         # Initialize serial ports
         self.ser_port_name_top = ser_port_name_top
         self.ser_port_name_bottom = ser_port_name_bottom
@@ -64,7 +64,7 @@ class PacketRouter:
         # Open the ports
         if ser_port_name_top is not None:
             try:
-                self.ser_port_top = Serial(port=ser_port_name_top, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+                self.ser_port_top = Serial(port=ser_port_name_top, baudrate=baudrate, timeout=0.5, write_timeout=0.5)
                 log_info(f"Opened {ser_port_name_top} for up link")
             except serialutil.SerialException:
                 log_error(f"Unable to open serial port {ser_port_name_top}")
@@ -72,7 +72,7 @@ class PacketRouter:
 
         if ser_port_name_bottom is not None:
             try:
-                self.ser_port_bottom = Serial(port=ser_port_name_bottom, baudrate=1000000, timeout=0.5, write_timeout=0.5)
+                self.ser_port_bottom = Serial(port=ser_port_name_bottom, baudrate=baudrate, timeout=0.5, write_timeout=0.5)
                 log_info(f"Opened {ser_port_name_bottom} for down link")
             except serialutil.SerialException:
                 log_error(f"Unable to open serial port {ser_port_name_bottom}")
@@ -285,26 +285,30 @@ class PacketRouter:
         # Answer is complete
         return ans
     
-    def send_image_data(self, module_nr: int, img_data: np.array):
+    def send_image_new(self, module_nr: int):
+        message = Message(MESSAGE_TYPE_IMG_NEW)
+        return self.send_message_module(module_nr, message)
+
+    def send_image_append(self, module_nr: int, img_data: np.array):
         # Mirror image data if required
         module = self.module_port_addr_mirror[module_nr]
         if module["mirror"]:
             img_data = np.flipud(img_data)
-        message = Message(MESSAGE_TYPE_DATA, img_data)
-        self.send_message_module(module_nr, message)
+        message = Message(MESSAGE_TYPE_IMG_APP, img_data)
+        return self.send_message_module(module_nr, message)
 
 
 class ModuleController(Thread):
     def __init__(self, config, command_queue):
         Thread.__init__(self, daemon=True)
         self.command_queue = command_queue
-        self.router = PacketRouter(config["port_up"], config["port_down"])
+        self.router = PacketRouter(config["port_up"], config["port_down"], config["baudrate"])
         self.module_cnt = self.router.get_num_modules()
+        self.height = self.module_cnt*45
         self.uploading_image = False
         self.playing = False
         self.image = Image.open("image.png")
         self.progress_extra_steps = 0
-        self.height = self.module_cnt*45
 
         log_info(f"Found {self.module_cnt} modules with {self.height} pixels")
 
