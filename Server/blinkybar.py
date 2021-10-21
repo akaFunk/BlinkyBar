@@ -422,8 +422,6 @@ class ModuleController(Thread):
                         # Cut the data, convert it to numpy and send it to the module
                         data_cut = module_data[mid][bid*256:(bid+1)*256]
                         data_cut = np.frombuffer(data_cut, dtype=np.uint8)
-                        #data_cut = np.array([255,255,255], dtype=np.uint8)
-                        #data_cut = np.zeros(106, dtype=np.uint8)
                         if not self.router.send_image_append(mid, data_cut):
                             log_error(f"Unable to send image data to module {mid}")
                             break
