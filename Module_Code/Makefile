@@ -5,11 +5,6 @@ LFU = 0xFF
 HFU = 0xDA
 EFU = 0xFD
 
-# Fuses with external 8 MHz clock (NOT CRYSTAL!) - just for testing stuff
-#LFU = 0xE0
-#HFU = 0xDA
-#EFU = 0xFD
-
 # Programmer options for Atmel ICE in ISP mode
 PROGRAMMER=atmelice_isp
 PORT=usb
@@ -20,13 +15,18 @@ AVRDUDE=avrdude
 CC=avr-gcc
 OBJCOPY=avr-objcopy
 DEVICE=ATMEGA328P
-CFLAGS=-Os -DF_CPU=8000000UL -mmcu=atmega328p -Wall
+DEVICE_SMALL=atmega328p
+CFLAGS=-O2 -DF_CPU=8000000UL -mmcu=${DEVICE_SMALL} -Wall
 
 ${BIN}.hex: ${BIN}.elf
 	${OBJCOPY} -O ihex -R .eeprom $< $@
 
 ${BIN}.elf: ${OBJS}
 	${CC} ${CFLAGS} -o $@ $^
+	avr-size -C --mcu=${DEVICE_SMALL} ${BIN}.elf
+
+size:
+	avr-size -C --mcu=${DEVICE_SMALL} ${BIN}.elf
 
 %.o: %.c
 	${CC} ${CFLAGS} -c -o $@ $<
