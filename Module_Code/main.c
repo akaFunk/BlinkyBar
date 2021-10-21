@@ -248,6 +248,35 @@ void debug_flash_sm()
     flash_sm_print_state();
 }
 
+void debug_flash_sm2()
+{
+    uint8_t data[256];
+    data[0] = 42;
+    data[1] = 43;
+    data[2] = 44;
+    flash_sm_init();
+    flash_sm_print_state();
+    flash_sm_tick();
+    flash_sm_print_state();
+    flash_sm_image_new();
+    flash_sm_image_append(data, 256);
+    flash_sm_image_append(data, 16);
+    flash_sm_print_state();
+    flash_sm_read_image_start();
+    flash_sm_print_state();
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+    flash_sm_read_image_data(data, 45*3);
+    uart_putcc("data[0]: ");
+    uart_putu32(data[0]);
+    uart_putcc(", data[1]: ");
+    uart_putu32(data[1]);
+    uart_putcc(", data[2]: ");
+    uart_putu32(data[2]);
+    uart_putcc("\n");
+}
+
 void debug_flash()
 {
     uint8_t data[256];
