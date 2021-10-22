@@ -471,7 +471,8 @@ class ModuleController(Thread):
                         break
 
                 # TODO: Send trigger to microcontroller on main board
-                # TODO: Find something how we can know the current state without estimating it
+                # TODO: Find something how we can know the current state without estimating it.
+                # TODO: Probably the µC on the host board can tell us the current state using its serial wire.
 
                 # TODO: This is just for debug purposes: Send trigger directly to modules with 1s delay between each trigger
                 log_info(f"Will trigger {self.width} times")
@@ -488,6 +489,7 @@ class ModuleController(Thread):
                 self.led_settings["progress_status"] = "ready"
                 log_info(f"Playback done")
 
+                # TODO: Once playback is done, we need to tell the modules to turn off the LEDs
 
     def init_modules(self):
         self.command_queue.put({"command": "init_modules"})
