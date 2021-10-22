@@ -18,6 +18,10 @@
 #define PWR_EN_PORT                 PORTC
 #define PWR_EN_PIN                  4
 
+#define TRIG_DDR                    DDRC  // PCINT8
+#define TRIG_PORT                   PORTC
+#define TRIG_PIN                    0
+
 #define LED_DDR                     DDRC
 #define LED_PORT                    PORTC
 #define LED_PIN                     2
@@ -105,6 +109,12 @@ int main()
 
     // TODO: Shutdown ALL LEDs
     display_status(0);
+
+    // Set up trigger interrupt
+    TRIG_DDR &= ~(1<<TRIG_PIN);
+    TRIG_PORT |= (1<<TRIG_PIN); // Enable pull-up
+    PCICR |= (1<<PCIE1);
+    PCMSK1 |= (1<<TRIG_PIN);
 
     // Test flash
     //debug_flash()
@@ -221,6 +231,18 @@ void display_status(uint8_t status)
     }
     ws2812b_send_column(status_led_data, 8);
     _delay_ms(1);
+}
+
+extern uint8_t reading;  // Reading status from flash_sm.c
+ISR(PCINT1_vect)
+{
+    // Make sure we are in reading mode
+    if(!reading)
+        return;
+
+    // Send data to LEDs and load new data after that
+    ws2812b_send_column(rgb_data, LED_COUNT);
+    flash_sm_read_image_data(rgb_data, LED_COUNT*3);
 }
 
 void debug_flash_sm()
