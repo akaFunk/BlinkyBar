@@ -280,10 +280,11 @@ class PacketRouter:
         return self.send_message_module(module_nr, message)
 
     def send_image_append(self, module_nr: int, img_data: np.array):
-        # Mirror image data if required
+        # Flipping the image, if required, cannot be done in this function. It
+        # only takes blocks of 256 bytes, which is not a multiple of 45*3, which
+        # means that flipping the image may require bytes from the past/next
+        # call to this function.
         module = self.module_port_addr_mirror[module_nr]
-        #if module["mirror"]:
-        #    img_data = np.flipud(img_data)  # TODO: This is wrong! We need to flip in groups of 3 bytes!
         message = Message(MESSAGE_TYPE_IMG_APP, img_data)
         return self.send_message_module(module_nr, message)
 
@@ -389,6 +390,7 @@ class ModuleController(Thread):
                 log_debug(f"New image hash: {self.led_settings['image_hash']}")
                 log_info("Processed and saved new image")
             elif command_data["command"] == "upload_image":
+                log_info("Uploading new image")
                 self.uploading_image = True
                 self.update_progress("processing", "Uploading image", 0.0)
 
@@ -399,12 +401,19 @@ class ModuleController(Thread):
                     log_error(f"Cannot upload image: size of scaled image does not match hardware configuration!")
                     log_error(f"Scaled image height: {height}, hardware height: {self.height}")
                     break
-                log_info(f"image size: {width}x{height}")
+                log_debug(f"Image size: {width}x{height}")
 
                 # Split the image for the modules
                 module_data = []
                 for mid in range(self.module_cnt):
                     cut_image = self.image_scaled.crop((0, mid*45, width, (mid+1)*45))
+                    # Swap the colors to the right order
+                    r,g,b = cut_image.split()
+                    cut_image = Image.merge("RGB", (g, r, b))
+                    # Flip the image, if required
+                    if self.router.module_port_addr_mirror[mid]["mirror"]:
+                        cut_image = cut_image.transpose(Image.FLIP_TOP_BOTTOM)
+                    # Transpose image (we want data along columns) and convert to numpy uint8 array
                     cut_data = cut_image.transpose(Image.TRANSPOSE).tobytes()
                     module_data.append(cut_data)
 
@@ -422,6 +431,7 @@ class ModuleController(Thread):
                         # Cut the data, convert it to numpy and send it to the module
                         data_cut = module_data[mid][bid*256:(bid+1)*256]
                         data_cut = np.frombuffer(data_cut, dtype=np.uint8)
+                        print(data_cut)
                         if not self.router.send_image_append(mid, data_cut):
                             log_error(f"Unable to send image data to module {mid}")
                             break
@@ -433,6 +443,7 @@ class ModuleController(Thread):
                             self.update_progress("noimage", "", 0.0)
                             break
                 self.update_progress("ready", "", 0.0)
+                log_info("Upload done")
             elif command_data["command"] == "set_speed":
                 # TODO: Send new speed value to microcontroller
                 log_info(f"Set speed to {self.led_settings['speed']} m/s")
