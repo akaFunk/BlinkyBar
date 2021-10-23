@@ -21,6 +21,8 @@ F 0 "J2" H 5500 3067 50  0000 C CNN
 F 1 "UP" H 5500 2976 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical" H 5450 2750 50  0001 C CNN
 F 3 "~" H 5450 2750 50  0001 C CNN
+F 4 "DS1023-2*3SF11" H 5450 2750 50  0001 C CNN "MPN"
+F 5 "CONNFLY Elec" H 5450 2750 50  0001 C CNN "Manufacturer"
 	1    5450 2750
 	1    0    0    -1  
 $EndComp
@@ -32,6 +34,8 @@ F 0 "J1" H 4050 3067 50  0000 C CNN
 F 1 "DN" H 4050 2976 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical" H 4000 2750 50  0001 C CNN
 F 3 "~" H 4000 2750 50  0001 C CNN
+F 4 "DS1023-2*3SF11" H 4000 2750 50  0001 C CNN "MPN"
+F 5 "CONNFLY Elec" H 4000 2750 50  0001 C CNN "Manufacturer"
 	1    4000 2750
 	1    0    0    -1  
 $EndComp
@@ -91,6 +95,8 @@ F 0 "J3" H 4700 4367 50  0000 C CNN
 F 1 "UPDN" H 4700 4276 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 4650 4050 50  0001 C CNN
 F 3 "~" H 4650 4050 50  0001 C CNN
+F 4 "B-2100S08P-B110" H 4650 4050 50  0001 C CNN "MPN"
+F 5 "Ckmtw(Shenzhen Cankemeng)" H 4650 4050 50  0001 C CNN "Manufacturer"
 	1    4650 4050
 	1    0    0    -1  
 $EndComp
