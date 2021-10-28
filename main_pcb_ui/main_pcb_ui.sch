@@ -1,0 +1,469 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_02x02_Odd_Even J2
+U 1 1 617B4CF5
+P 3050 1900
+F 0 "J2" H 3100 2117 50  0000 C CNN
+F 1 "Conn_02x02_Odd_Even" H 3100 2026 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 3050 1900 50  0001 C CNN
+F 3 "~" H 3050 1900 50  0001 C CNN
+F 4 "C66690" H 3050 1900 50  0001 C CNN "MPN"
+F 5 "BOOMELE" H 3050 1900 50  0001 C CNN "Manufacturer"
+	1    3050 1900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x02_Odd_Even J3
+U 1 1 617B5507
+P 7550 1900
+F 0 "J3" H 7600 2117 50  0000 C CNN
+F 1 "Conn_02x02_Odd_Even" H 7600 2026 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 7550 1900 50  0001 C CNN
+F 3 "~" H 7550 1900 50  0001 C CNN
+F 4 "C66690" H 7550 1900 50  0001 C CNN "MPN"
+F 5 "BOOMELE" H 7550 1900 50  0001 C CNN "Manufacturer"
+	1    7550 1900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x02_Odd_Even J4
+U 1 1 617B5A45
+P 7550 4450
+F 0 "J4" H 7600 4667 50  0000 C CNN
+F 1 "Conn_02x02_Odd_Even" H 7600 4576 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 7550 4450 50  0001 C CNN
+F 3 "~" H 7550 4450 50  0001 C CNN
+F 4 "C66690" H 7550 4450 50  0001 C CNN "MPN"
+F 5 "BOOMELE" H 7550 4450 50  0001 C CNN "Manufacturer"
+	1    7550 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x02_Odd_Even J1
+U 1 1 617B5EC7
+P 3050 4450
+F 0 "J1" H 3100 4667 50  0000 C CNN
+F 1 "Conn_02x02_Odd_Even" H 3100 4576 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 3050 4450 50  0001 C CNN
+F 3 "~" H 3050 4450 50  0001 C CNN
+F 4 "C66690" H 3050 4450 50  0001 C CNN "MPN"
+F 5 "BOOMELE" H 3050 4450 50  0001 C CNN "Manufacturer"
+	1    3050 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 617B9703
+P 3950 3000
+F 0 "#PWR0101" H 3950 2750 50  0001 C CNN
+F 1 "GND" H 3955 2827 50  0000 C CNN
+F 2 "" H 3950 3000 50  0001 C CNN
+F 3 "" H 3950 3000 50  0001 C CNN
+	1    3950 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3900 2900 3900 2950
+Wire Wire Line
+	4000 2950 4000 2900
+Wire Wire Line
+	3900 2950 3950 2950
+Wire Wire Line
+	3950 2950 3950 3000
+Connection ~ 3950 2950
+Wire Wire Line
+	3950 2950 4000 2950
+Wire Wire Line
+	3900 2500 3900 2450
+Wire Wire Line
+	3900 2450 3950 2450
+Wire Wire Line
+	4000 2450 4000 2500
+Wire Wire Line
+	3950 2450 3950 2400
+Connection ~ 3950 2450
+Wire Wire Line
+	3950 2450 4000 2450
+Text Label 3950 2400 0    50   ~ 0
+SP+
+$Comp
+L power:GND #PWR0102
+U 1 1 617BB344
+P 3950 4100
+F 0 "#PWR0102" H 3950 3850 50  0001 C CNN
+F 1 "GND" H 3955 3927 50  0000 C CNN
+F 2 "" H 3950 4100 50  0001 C CNN
+F 3 "" H 3950 4100 50  0001 C CNN
+	1    3950 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3900 4000 3900 4050
+Wire Wire Line
+	4000 4050 4000 4000
+Wire Wire Line
+	3900 4050 3950 4050
+Wire Wire Line
+	3950 4050 3950 4100
+Connection ~ 3950 4050
+Wire Wire Line
+	3950 4050 4000 4050
+Wire Wire Line
+	3900 3600 3900 3550
+Wire Wire Line
+	3900 3550 3950 3550
+Wire Wire Line
+	4000 3550 4000 3600
+Wire Wire Line
+	3950 3550 3950 3500
+Connection ~ 3950 3550
+Wire Wire Line
+	3950 3550 4000 3550
+Text Label 3950 3500 0    50   ~ 0
+SP-
+$Comp
+L power:GND #PWR0103
+U 1 1 617BEDD2
+P 6500 3000
+F 0 "#PWR0103" H 6500 2750 50  0001 C CNN
+F 1 "GND" H 6505 2827 50  0000 C CNN
+F 2 "" H 6500 3000 50  0001 C CNN
+F 3 "" H 6500 3000 50  0001 C CNN
+	1    6500 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6450 2900 6450 2950
+Wire Wire Line
+	6550 2950 6550 2900
+Wire Wire Line
+	6450 2950 6500 2950
+Wire Wire Line
+	6500 2950 6500 3000
+Connection ~ 6500 2950
+Wire Wire Line
+	6500 2950 6550 2950
+Wire Wire Line
+	6450 2500 6450 2450
+Wire Wire Line
+	6450 2450 6500 2450
+Wire Wire Line
+	6550 2450 6550 2500
+Wire Wire Line
+	6500 2450 6500 2400
+Connection ~ 6500 2450
+Wire Wire Line
+	6500 2450 6550 2450
+Text Label 6500 2400 0    50   ~ 0
+BR+
+$Comp
+L power:GND #PWR0104
+U 1 1 617BEDEB
+P 6500 4100
+F 0 "#PWR0104" H 6500 3850 50  0001 C CNN
+F 1 "GND" H 6505 3927 50  0000 C CNN
+F 2 "" H 6500 4100 50  0001 C CNN
+F 3 "" H 6500 4100 50  0001 C CNN
+	1    6500 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6450 4000 6450 4050
+Wire Wire Line
+	6550 4050 6550 4000
+Wire Wire Line
+	6450 4050 6500 4050
+Wire Wire Line
+	6500 4050 6500 4100
+Connection ~ 6500 4050
+Wire Wire Line
+	6500 4050 6550 4050
+Wire Wire Line
+	6450 3600 6450 3550
+Wire Wire Line
+	6450 3550 6500 3550
+Wire Wire Line
+	6550 3550 6550 3600
+Wire Wire Line
+	6500 3550 6500 3500
+Connection ~ 6500 3550
+Wire Wire Line
+	6500 3550 6550 3550
+Text Label 6500 3500 0    50   ~ 0
+BR-
+$Comp
+L Device:LED D1
+U 1 1 617BFA43
+P 5300 2850
+F 0 "D1" V 5339 2732 50  0000 R CNN
+F 1 "LED" V 5248 2732 50  0000 R CNN
+F 2 "LED_THT:LED_D3.0mm" H 5300 2850 50  0001 C CNN
+F 3 "~" H 5300 2850 50  0001 C CNN
+F 4 "HL-304S9AD" H 5300 2850 50  0001 C CNN "MPN"
+F 5 "HONGLITRONIC" H 5300 2850 50  0001 C CNN "Manufacturer"
+	1    5300 2850
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR0105
+U 1 1 617C0332
+P 5300 3000
+F 0 "#PWR0105" H 5300 2750 50  0001 C CNN
+F 1 "GND" H 5305 2827 50  0000 C CNN
+F 2 "" H 5300 3000 50  0001 C CNN
+F 3 "" H 5300 3000 50  0001 C CNN
+	1    5300 3000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 617C0817
+P 5300 2550
+F 0 "R1" H 5370 2596 50  0000 L CNN
+F 1 "220" H 5370 2505 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 5230 2550 50  0001 C CNN
+F 3 "~" H 5300 2550 50  0001 C CNN
+F 4 "CR0603FA2200G" H 5300 2550 50  0001 C CNN "MPN"
+F 5 "LIZ Elec" H 5300 2550 50  0001 C CNN "Manufacturer"
+	1    5300 2550
+	1    0    0    -1  
+$EndComp
+Text Label 5300 2400 0    50   ~ 0
+LED
+$Comp
+L power:GND #PWR0106
+U 1 1 617C2173
+P 5300 4100
+F 0 "#PWR0106" H 5300 3850 50  0001 C CNN
+F 1 "GND" H 5305 3927 50  0000 C CNN
+F 2 "" H 5300 4100 50  0001 C CNN
+F 3 "" H 5300 4100 50  0001 C CNN
+	1    5300 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5250 4000 5250 4050
+Wire Wire Line
+	5350 4050 5350 4000
+Wire Wire Line
+	5250 4050 5300 4050
+Wire Wire Line
+	5300 4050 5300 4100
+Connection ~ 5300 4050
+Wire Wire Line
+	5300 4050 5350 4050
+Wire Wire Line
+	5250 3600 5250 3550
+Wire Wire Line
+	5250 3550 5300 3550
+Wire Wire Line
+	5350 3550 5350 3600
+Wire Wire Line
+	5300 3550 5300 3500
+Connection ~ 5300 3550
+Wire Wire Line
+	5300 3550 5350 3550
+Text Label 5300 3500 0    50   ~ 0
+TRIG
+Text Label 3350 1900 0    50   ~ 0
+SP+
+Text Label 3350 2000 0    50   ~ 0
+SP-
+Text Label 7350 1900 2    50   ~ 0
+BR+
+Text Label 7350 2000 2    50   ~ 0
+BR-
+Text Label 3350 4450 0    50   ~ 0
+TRIG
+Text Label 7350 4450 2    50   ~ 0
+LED
+$Comp
+L power:GND #PWR0107
+U 1 1 617C2FA0
+P 7300 4600
+F 0 "#PWR0107" H 7300 4350 50  0001 C CNN
+F 1 "GND" H 7305 4427 50  0000 C CNN
+F 2 "" H 7300 4600 50  0001 C CNN
+F 3 "" H 7300 4600 50  0001 C CNN
+	1    7300 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7350 4550 7300 4550
+Wire Wire Line
+	7300 4550 7300 4600
+$Comp
+L power:GND #PWR0108
+U 1 1 617C4C0B
+P 7900 4600
+F 0 "#PWR0108" H 7900 4350 50  0001 C CNN
+F 1 "GND" H 7905 4427 50  0000 C CNN
+F 2 "" H 7900 4600 50  0001 C CNN
+F 3 "" H 7900 4600 50  0001 C CNN
+	1    7900 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7850 4450 7900 4450
+Wire Wire Line
+	7900 4450 7900 4550
+Wire Wire Line
+	7850 4550 7900 4550
+Connection ~ 7900 4550
+Wire Wire Line
+	7900 4550 7900 4600
+$Comp
+L power:GND #PWR0109
+U 1 1 617C6B1E
+P 3400 4600
+F 0 "#PWR0109" H 3400 4350 50  0001 C CNN
+F 1 "GND" H 3405 4427 50  0000 C CNN
+F 2 "" H 3400 4600 50  0001 C CNN
+F 3 "" H 3400 4600 50  0001 C CNN
+	1    3400 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3350 4550 3400 4550
+Wire Wire Line
+	3400 4550 3400 4600
+$Comp
+L power:GND #PWR0110
+U 1 1 617C7F49
+P 2800 4600
+F 0 "#PWR0110" H 2800 4350 50  0001 C CNN
+F 1 "GND" H 2805 4427 50  0000 C CNN
+F 2 "" H 2800 4600 50  0001 C CNN
+F 3 "" H 2800 4600 50  0001 C CNN
+	1    2800 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2850 4550 2800 4550
+Wire Wire Line
+	2800 4550 2800 4600
+Wire Wire Line
+	2850 4450 2800 4450
+Wire Wire Line
+	2800 4450 2800 4550
+Connection ~ 2800 4550
+$Comp
+L power:GND #PWR0111
+U 1 1 617CA2B0
+P 2800 2050
+F 0 "#PWR0111" H 2800 1800 50  0001 C CNN
+F 1 "GND" H 2805 1877 50  0000 C CNN
+F 2 "" H 2800 2050 50  0001 C CNN
+F 3 "" H 2800 2050 50  0001 C CNN
+	1    2800 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2850 1900 2800 1900
+Wire Wire Line
+	2800 1900 2800 2000
+Wire Wire Line
+	2850 2000 2800 2000
+Connection ~ 2800 2000
+Wire Wire Line
+	2800 2000 2800 2050
+$Comp
+L power:GND #PWR0112
+U 1 1 617CCF83
+P 7900 2050
+F 0 "#PWR0112" H 7900 1800 50  0001 C CNN
+F 1 "GND" H 7905 1877 50  0000 C CNN
+F 2 "" H 7900 2050 50  0001 C CNN
+F 3 "" H 7900 2050 50  0001 C CNN
+	1    7900 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7850 2000 7900 2000
+Wire Wire Line
+	7900 2000 7900 2050
+Wire Wire Line
+	7850 1900 7900 1900
+Wire Wire Line
+	7900 1900 7900 2000
+Connection ~ 7900 2000
+$Comp
+L Switch:SW_MEC_5E SW1
+U 1 1 617E8006
+P 3900 2700
+F 0 "SW1" V 3854 2948 50  0000 L CNN
+F 1 "SP+" V 3945 2948 50  0000 L CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H8mm" H 3900 3000 50  0001 C CNN
+F 3 "http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371" H 3900 3000 50  0001 C CNN
+F 4 "TS4570CJ" H 3900 2700 50  0001 C CNN "MPN"
+F 5 "SHOU HAN" H 3900 2700 50  0001 C CNN "Manufacturer"
+	1    3900 2700
+	0    1    1    0   
+$EndComp
+$Comp
+L Switch:SW_MEC_5E SW4
+U 1 1 617E8A69
+P 6450 2700
+F 0 "SW4" V 6404 2948 50  0000 L CNN
+F 1 "BR+" V 6495 2948 50  0000 L CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H8mm" H 6450 3000 50  0001 C CNN
+F 3 "http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371" H 6450 3000 50  0001 C CNN
+F 4 "TS4570CJ" H 6450 2700 50  0001 C CNN "MPN"
+F 5 "SHOU HAN" H 6450 2700 50  0001 C CNN "Manufacturer"
+	1    6450 2700
+	0    1    1    0   
+$EndComp
+$Comp
+L Switch:SW_MEC_5E SW5
+U 1 1 617E95EC
+P 6450 3800
+F 0 "SW5" V 6404 4048 50  0000 L CNN
+F 1 "BR-" V 6495 4048 50  0000 L CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H8mm" H 6450 4100 50  0001 C CNN
+F 3 "http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371" H 6450 4100 50  0001 C CNN
+F 4 "TS4570CJ" H 6450 3800 50  0001 C CNN "MPN"
+F 5 "SHOU HAN" H 6450 3800 50  0001 C CNN "Manufacturer"
+	1    6450 3800
+	0    1    1    0   
+$EndComp
+$Comp
+L Switch:SW_MEC_5E SW3
+U 1 1 617E9B43
+P 5250 3800
+F 0 "SW3" V 5204 4048 50  0000 L CNN
+F 1 "TRIG" V 5295 4048 50  0000 L CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H8mm" H 5250 4100 50  0001 C CNN
+F 3 "http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371" H 5250 4100 50  0001 C CNN
+F 4 "TS4570CJ" H 5250 3800 50  0001 C CNN "MPN"
+F 5 "SHOU HAN" H 5250 3800 50  0001 C CNN "Manufacturer"
+	1    5250 3800
+	0    1    1    0   
+$EndComp
+$Comp
+L Switch:SW_MEC_5E SW2
+U 1 1 617EA3A1
+P 3900 3800
+F 0 "SW2" V 3854 4048 50  0000 L CNN
+F 1 "SP-" V 3945 4048 50  0000 L CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H8mm" H 3900 4100 50  0001 C CNN
+F 3 "http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371" H 3900 4100 50  0001 C CNN
+F 4 "TS4570CJ" H 3900 3800 50  0001 C CNN "MPN"
+F 5 "SHOU HAN" H 3900 3800 50  0001 C CNN "Manufacturer"
+	1    3900 3800
+	0    1    1    0   
+$EndComp
+$EndSCHEMATC
