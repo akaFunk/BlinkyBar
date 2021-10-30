@@ -410,7 +410,7 @@ L Connector:Raspberry_Pi_2_3 J4
 U 1 1 60E7345B
 P 3550 4300
 F 0 "J4" H 2900 5550 50  0000 C CNN
-F 1 "Raspberry_Pi_2_3" H 4100 5550 50  0000 C CNN
+F 1 "Raspberry_Pi_Zero_WH" H 4200 5550 50  0000 C CNN
 F 2 "main_pcb:RPiZero" H 3550 4300 50  0001 C CNN
 F 3 "https://www.raspberrypi.org/documentation/hardware/raspberrypi/schematics/rpi_SCH_3bplus_1p0_reduced.pdf" H 3550 4300 50  0001 C CNN
 F 4 "C50982" H 3550 4300 50  0001 C CNN "MPN"
@@ -1334,7 +1334,6 @@ Wire Wire Line
 Connection ~ 3350 5650
 Wire Wire Line
 	3350 5650 3450 5650
-NoConn ~ 4350 3400
 NoConn ~ 4350 3500
 NoConn ~ 4350 4100
 NoConn ~ 4350 4400
@@ -1494,7 +1493,7 @@ Wire Wire Line
 	2550 7250 2550 7350
 Connection ~ 2550 7350
 Text Label 3100 7350 0    50   ~ 0
-TRIG
+BTN_TRIG
 Text Label 3100 6600 0    50   ~ 0
 SP+
 Text Label 3100 7250 0    50   ~ 0
@@ -1614,9 +1613,9 @@ Text Label 2750 4600 2    50   ~ 0
 SP-
 Text Label 2750 4800 2    50   ~ 0
 BR+
-Text Label 2750 4700 2    50   ~ 0
+Text Label 4350 5100 0    50   ~ 0
 STAT
-Text Label 2750 4900 2    50   ~ 0
+Text Label 4350 5000 0    50   ~ 0
 BR-
 $Comp
 L Mechanical:MountingHole_Pad H4
@@ -1632,8 +1631,6 @@ $EndComp
 NoConn ~ 6100 7600
 Text Notes 800  2550 0    50   ~ 0
 TODO:\n- Interrupt of UART externer required?
-NoConn ~ 4350 5000
-NoConn ~ 4350 5100
 NoConn ~ 9650 3800
 NoConn ~ 9650 4800
 NoConn ~ 9650 5200
@@ -1665,10 +1662,6 @@ Wire Wire Line
 	8850 1350 8850 1300
 Wire Wire Line
 	5200 3950 4800 3950
-Wire Wire Line
-	4800 3950 4800 4200
-Wire Wire Line
-	4800 4200 4350 4200
 Connection ~ 5200 3950
 NoConn ~ 9650 5000
 NoConn ~ 9650 4900
@@ -1681,10 +1674,10 @@ SDA
 Text Label 4350 3800 0    50   ~ 0
 SCL
 $Comp
-L power:+3V3 #PWR?
+L power:+3V3 #PWR03
 U 1 1 617EB094
 P 10850 3900
-F 0 "#PWR?" H 10850 3750 50  0001 C CNN
+F 0 "#PWR03" H 10850 3750 50  0001 C CNN
 F 1 "+3V3" H 10865 4073 50  0000 C CNN
 F 2 "" H 10850 3900 50  0001 C CNN
 F 3 "" H 10850 3900 50  0001 C CNN
@@ -1692,10 +1685,10 @@ F 3 "" H 10850 3900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R R?
+L Device:R R4
 U 1 1 617EB09C
 P 10850 4050
-F 0 "R?" H 10920 4096 50  0000 L CNN
+F 0 "R4" H 10920 4096 50  0000 L CNN
 F 1 "10k" H 10920 4005 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 10780 4050 50  0001 C CNN
 F 3 "~" H 10850 4050 50  0001 C CNN
@@ -1705,10 +1698,10 @@ F 5 "YAGEO" H 10850 4050 50  0001 C CNN "Manufacturer"
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:+3V3 #PWR?
+L power:+3V3 #PWR02
 U 1 1 61814088
 P 10550 3900
-F 0 "#PWR?" H 10550 3750 50  0001 C CNN
+F 0 "#PWR02" H 10550 3750 50  0001 C CNN
 F 1 "+3V3" H 10565 4073 50  0000 C CNN
 F 2 "" H 10550 3900 50  0001 C CNN
 F 3 "" H 10550 3900 50  0001 C CNN
@@ -1716,10 +1709,10 @@ F 3 "" H 10550 3900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:R R?
+L Device:R R3
 U 1 1 61814090
 P 10550 4050
-F 0 "R?" H 10620 4096 50  0000 L CNN
+F 0 "R3" H 10620 4096 50  0000 L CNN
 F 1 "10k" H 10620 4005 50  0000 L CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 10480 4050 50  0001 C CNN
 F 3 "~" H 10550 4050 50  0001 C CNN
@@ -1732,4 +1725,12 @@ Text Label 10850 4200 3    50   ~ 0
 SDA
 Text Label 10550 4200 3    50   ~ 0
 SCL
+Text Label 4800 3950 0    50   ~ 0
+~SC_IRQ
+Text Label 2750 4700 2    50   ~ 0
+~SC_IRQ
+Text Label 4350 3400 0    50   ~ 0
+BTN_TRIG
+NoConn ~ 4350 4200
+NoConn ~ 2750 4900
 $EndSCHEMATC
