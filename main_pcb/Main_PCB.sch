@@ -1724,4 +1724,32 @@ Connection ~ 2550 950
 NoConn ~ 9650 2800
 NoConn ~ 9650 2900
 NoConn ~ 8450 3000
+Text Label 5300 6750 0    50   ~ 0
+BTN_TRIG
+$Comp
+L Connector_Generic:Conn_01x02 J9
+U 1 1 6185D43E
+P 5100 6750
+F 0 "J9" H 5018 6967 50  0000 C CNN
+F 1 "BTN_TRIG" H 5018 6876 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 5100 6750 50  0001 C CNN
+F 3 "~" H 5100 6750 50  0001 C CNN
+	1    5100 6750
+	-1   0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR04
+U 1 1 6185E109
+P 5350 6900
+F 0 "#PWR04" H 5350 6650 50  0001 C CNN
+F 1 "GND" H 5355 6727 50  0000 C CNN
+F 2 "" H 5350 6900 50  0001 C CNN
+F 3 "" H 5350 6900 50  0001 C CNN
+	1    5350 6900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 6850 5350 6850
+Wire Wire Line
+	5350 6850 5350 6900
 $EndSCHEMATC
