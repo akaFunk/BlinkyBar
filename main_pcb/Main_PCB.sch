@@ -1734,6 +1734,8 @@ F 0 "J9" H 5018 6967 50  0000 C CNN
 F 1 "BTN_TRIG" H 5018 6876 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 5100 6750 50  0001 C CNN
 F 3 "~" H 5100 6750 50  0001 C CNN
+F 4 "DNP" H 5100 6750 50  0001 C CNN "MPN"
+F 5 "~" H 5100 6750 50  0001 C CNN "Manufacturer"
 	1    5100 6750
 	-1   0    0    -1  
 $EndComp
