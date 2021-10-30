@@ -1366,32 +1366,6 @@ F 5 "BOOMELE" H 2800 7250 50  0001 C CNN "Manufacturer"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_02x02_Odd_Even J6
-U 1 1 6197FCB5
-P 3950 7250
-F 0 "J6" H 4000 7467 50  0000 C CNN
-F 1 "UI" H 4000 7376 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 3950 7250 50  0001 C CNN
-F 3 "~" H 3950 7250 50  0001 C CNN
-F 4 "C66690" H 3950 7250 50  0001 C CNN "MPN"
-F 5 "BOOMELE" H 3950 7250 50  0001 C CNN "Manufacturer"
-	1    3950 7250
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector_Generic:Conn_02x02_Odd_Even J5
-U 1 1 619802E1
-P 3950 6600
-F 0 "J5" H 4000 6817 50  0000 C CNN
-F 1 "UI" H 4000 6726 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 3950 6600 50  0001 C CNN
-F 3 "~" H 3950 6600 50  0001 C CNN
-F 4 "C66690" H 3950 6600 50  0001 C CNN "MPN"
-F 5 "BOOMELE" H 3950 6600 50  0001 C CNN "Manufacturer"
-	1    3950 6600
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR08
 U 1 1 61980930
 P 2550 6750
@@ -1413,61 +1387,8 @@ F 3 "" H 2550 7400 50  0001 C CNN
 	1    2550 7400
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:GND #PWR013
-U 1 1 61981281
-P 3700 7400
-F 0 "#PWR013" H 3700 7150 50  0001 C CNN
-F 1 "GND" H 3705 7227 50  0000 C CNN
-F 2 "" H 3700 7400 50  0001 C CNN
-F 3 "" H 3700 7400 50  0001 C CNN
-	1    3700 7400
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR016
-U 1 1 61981744
-P 4300 7400
-F 0 "#PWR016" H 4300 7150 50  0001 C CNN
-F 1 "GND" H 4305 7227 50  0000 C CNN
-F 2 "" H 4300 7400 50  0001 C CNN
-F 3 "" H 4300 7400 50  0001 C CNN
-	1    4300 7400
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR015
-U 1 1 61981CE1
-P 4300 6750
-F 0 "#PWR015" H 4300 6500 50  0001 C CNN
-F 1 "GND" H 4305 6577 50  0000 C CNN
-F 2 "" H 4300 6750 50  0001 C CNN
-F 3 "" H 4300 6750 50  0001 C CNN
-	1    4300 6750
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
-	4250 6600 4300 6600
-Wire Wire Line
-	4300 6600 4300 6700
-Wire Wire Line
-	4250 6700 4300 6700
-Connection ~ 4300 6700
-Wire Wire Line
-	4300 6700 4300 6750
-Wire Wire Line
-	4250 7250 4300 7250
-Wire Wire Line
-	4300 7250 4300 7350
-Wire Wire Line
-	4250 7350 4300 7350
-Connection ~ 4300 7350
-Wire Wire Line
-	4300 7350 4300 7400
-Wire Wire Line
-	3750 7350 3700 7350
-Wire Wire Line
-	3550 7350 3550 7400
+	3750 7350 3750 7400
 Wire Wire Line
 	2600 7350 2550 7350
 Wire Wire Line
@@ -1487,12 +1408,6 @@ Text Label 3100 6600 0    50   ~ 0
 SP+
 Text Label 3100 7250 0    50   ~ 0
 SP-
-Text Label 3750 6600 2    50   ~ 0
-BR+
-Text Label 3750 7250 2    50   ~ 0
-BR-
-Text Label 3750 6700 2    50   ~ 0
-STAT
 Text Notes 3050 6300 0    50   ~ 0
 User-Interface
 $Comp
@@ -1720,4 +1635,89 @@ NoConn ~ 4350 4200
 NoConn ~ 2750 4900
 Text Label 3100 6700 0    50   ~ 0
 MASTER_ON
+Text Label 3800 6700 2    50   ~ 0
+STAT
+Text Label 3800 7250 2    50   ~ 0
+BR-
+Text Label 3800 6600 2    50   ~ 0
+BR+
+Wire Wire Line
+	3800 7350 3750 7350
+Wire Wire Line
+	4350 7350 4350 7400
+Connection ~ 4350 7350
+Wire Wire Line
+	4300 7350 4350 7350
+Wire Wire Line
+	4350 7250 4350 7350
+Wire Wire Line
+	4300 7250 4350 7250
+Wire Wire Line
+	4350 6700 4350 6750
+Connection ~ 4350 6700
+Wire Wire Line
+	4300 6700 4350 6700
+Wire Wire Line
+	4350 6600 4350 6700
+Wire Wire Line
+	4300 6600 4350 6600
+$Comp
+L power:GND #PWR015
+U 1 1 61981CE1
+P 4350 6750
+F 0 "#PWR015" H 4350 6500 50  0001 C CNN
+F 1 "GND" H 4355 6577 50  0000 C CNN
+F 2 "" H 4350 6750 50  0001 C CNN
+F 3 "" H 4350 6750 50  0001 C CNN
+	1    4350 6750
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR016
+U 1 1 61981744
+P 4350 7400
+F 0 "#PWR016" H 4350 7150 50  0001 C CNN
+F 1 "GND" H 4355 7227 50  0000 C CNN
+F 2 "" H 4350 7400 50  0001 C CNN
+F 3 "" H 4350 7400 50  0001 C CNN
+	1    4350 7400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR013
+U 1 1 61981281
+P 3750 7400
+F 0 "#PWR013" H 3750 7150 50  0001 C CNN
+F 1 "GND" H 3755 7227 50  0000 C CNN
+F 2 "" H 3750 7400 50  0001 C CNN
+F 3 "" H 3750 7400 50  0001 C CNN
+	1    3750 7400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x02_Odd_Even J5
+U 1 1 619802E1
+P 4000 6600
+F 0 "J5" H 4050 6817 50  0000 C CNN
+F 1 "UI" H 4050 6726 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 4000 6600 50  0001 C CNN
+F 3 "~" H 4000 6600 50  0001 C CNN
+F 4 "C66690" H 4000 6600 50  0001 C CNN "MPN"
+F 5 "BOOMELE" H 4000 6600 50  0001 C CNN "Manufacturer"
+	1    4000 6600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x02_Odd_Even J6
+U 1 1 6197FCB5
+P 4000 7250
+F 0 "J6" H 4050 7467 50  0000 C CNN
+F 1 "UI" H 4050 7376 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x02_P2.54mm_Vertical" H 4000 7250 50  0001 C CNN
+F 3 "~" H 4000 7250 50  0001 C CNN
+F 4 "C66690" H 4000 7250 50  0001 C CNN "MPN"
+F 5 "BOOMELE" H 4000 7250 50  0001 C CNN "Manufacturer"
+	1    4000 7250
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
