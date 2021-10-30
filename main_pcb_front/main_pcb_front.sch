@@ -125,4 +125,15 @@ F 3 "~" H 5450 3250 50  0001 C CNN
 	1    5450 3250
 	1    0    0    -1  
 $EndComp
+$Comp
+L Mechanical:MountingHole H11
+U 1 1 617D3C5C
+P 4750 2550
+F 0 "H11" H 4850 2596 50  0000 L CNN
+F 1 "PWR" H 4850 2505 50  0000 L CNN
+F 2 "main_pcb_front:MountingHole_PowerBtn" H 4750 2550 50  0001 C CNN
+F 3 "~" H 4750 2550 50  0001 C CNN
+	1    4750 2550
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
