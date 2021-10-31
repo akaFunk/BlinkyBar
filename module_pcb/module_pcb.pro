@@ -242,7 +242,7 @@ dPairViaGap=0.25
 [schematic_editor]
 version=1
 PageLayoutDescrFile=
-PlotDirectoryName=Output/
+PlotDirectoryName=output/
 SubpartIdSeparator=0
 SubpartFirstId=65
 NetFmtName=Pcbnew

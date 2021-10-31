@@ -4,8 +4,8 @@ The BlinkyBar is a modular LED light painting device based on the WS2812B progra
 We are currently working on the first release. Images made with an earlier version are shown below. This older version featured only 60 LEDs per meter, while the new one will have 180 LEDs per meter.
 
 ## Images
-![Example Image 1](Images/nyancat.jpg)
-![Example Image 2](Images/head.jpg)
+![Example Image 1](images/nyancat.jpg)
+![Example Image 2](images/head.jpg)
 
 ## Building BlinkyBar
 

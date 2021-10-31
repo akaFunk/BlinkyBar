@@ -162,7 +162,7 @@ F 5 "Microchip" H 2600 5900 50  0001 C CNN "Manufacturer"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Module_PCB:W25Q16JV U1
+L module_pcb:W25Q16JV U1
 U 1 1 60D73EDF
 P 1100 6550
 F 0 "U1" H 1100 6965 50  0000 C CNN
