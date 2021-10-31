@@ -6,3 +6,39 @@ We are currently working on the first release. Images made with an earlier versi
 ## Images
 ![Example Image 1](Images/nyancat.jpg)
 ![Example Image 2](Images/head.jpg)
+
+## Building BlinkyBar
+
+### Parts
+Additional part required for a BlinkyBar with 4 modules and the main unit, i.e., 10 module PCBs and a length of 2475 mm and 450 LEDs.
+For the PCBs you will find lists in CSV format exported from KiCad in each of the PCBs output folder.
+
+| Description | Count | 3D Model |
+|---|---|---|
+| U-Profile, 30x20x2x495 mm (WxHxTxL), Aluminum | 1 | main_profile |
+| U-Profile, 30x20x2x495 mm (WxHxTxL), Aluminum | 4 | module_profile |
+| 6x6x100 mm, Steel | 8 | module_bolt |
+| 3D-printed stand for the module PCB | 15 | module_stand |
+| 3D-printed power button protector | 1 | main_button_protector |
+| 3D-printed main case | 1 | main_case |
+| 18650 Holder | 12 | 18650_holder |
+| Plate, 35x25x3 mm, Steel | 4 | module_plate |
+| Main PCB holding the Raspberry Pi Zero and the user interface PCB | 1 | main_pcb |
+| Main PCB adapter to combine and raise the two connector fro the module pcb within the main module | 1 | main_pcb_adapter |
+| Main PCB front panel as the case cover | 1 | main_pcb_front |
+| Main PCB user interface holding a few buttons and an LED | 1 | main_pcb_ui |
+| Module PCB with the LEDs | 10 | module_pcb |
+| M4x10 wing screw (DIN 316) | 4 | |
+| M3x4 countersunk head screw (ISO 14581) to hold the battery holders | 24 | |
+| M3 nut (ISO 4032) to hold the battery holders in the main case | 4 | |
+| M3x8 flat head screw (ISO7389) to hold the main PCB in the case | 4 | |
+| M3 nut (ISO 4032) to hold the main PCB in the case | 4 | |
+| M3x20 flat head screw (ISO7389) to hold the front panel PCB to the case | 4 | |
+| M3 nut (ISO 4032) to hold the front panel PCB to the case | 4 | |
+| M3x12 flat head screw (ISO7389) to hold the stand to the profile | 30 | |
+| M3 nut (ISO 4032) to hold the stand to the profile | 30 | |
+| M3x8 flat head screw (ISO7389) to hold the module PCB to the stand | 60 | |
+| M3 nut (ISO 4032) to hold the module PCB to the stand | 60 | |
+| M3x8 flat head screw (ISO7389) to hold the power button protector to the front panel PCB | 2 | |
+| M3 nut (ISO 4032) to hold the power button protector to the front panel PCB | 2 | |
+| M3x8 flat head screw (ISO7389) to hold the steel bolts to the profile | 16 | |
