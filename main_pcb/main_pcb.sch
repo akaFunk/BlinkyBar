@@ -794,7 +794,7 @@ Text Label 2200 4300 2    50   ~ 0
 SCK
 Text Label 9650 3000 0    50   ~ 0
 SS
-Text Label 2750 3800 2    50   ~ 0
+Text Label 2750 3900 2    50   ~ 0
 SS
 $Comp
 L Device:R R7
@@ -1057,7 +1057,6 @@ Wire Wire Line
 NoConn ~ 4350 3500
 NoConn ~ 4350 4100
 NoConn ~ 4350 4400
-NoConn ~ 2750 3900
 NoConn ~ 2750 3700
 $Comp
 L Connector_Generic:Conn_02x02_Odd_Even J2
@@ -1754,4 +1753,5 @@ Wire Wire Line
 	5300 6850 5350 6850
 Wire Wire Line
 	5350 6850 5350 6900
+NoConn ~ 2750 3800
 $EndSCHEMATC
