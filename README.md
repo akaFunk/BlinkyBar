@@ -31,14 +31,14 @@ For the PCBs you will find lists in CSV format exported from KiCad in each of th
 | M4x10 wing screw (DIN 316) | 4 | |
 | M3x4 countersunk head screw (ISO 14581) to hold the battery holders | 24 | |
 | M3 nut (ISO 4032) to hold the battery holders in the main case | 4 | |
-| M3x8 flat head screw (ISO7389) to hold the main PCB in the case | 4 | |
+| M3x8 flat head screw (ISO7380) to hold the main PCB in the case | 4 | |
 | M3 nut (ISO 4032) to hold the main PCB in the case | 4 | |
-| M3x20 flat head screw (ISO7389) to hold the front panel PCB to the case | 4 | |
+| M3x20 flat head screw (ISO7380) to hold the front panel PCB to the case | 4 | |
 | M3 nut (ISO 4032) to hold the front panel PCB to the case | 4 | |
-| M3x12 flat head screw (ISO7389) to hold the stand to the profile | 30 | |
+| M3x12 flat head screw (ISO7380) to hold the stand to the profile | 30 | |
 | M3 nut (ISO 4032) to hold the stand to the profile | 30 | |
-| M3x8 flat head screw (ISO7389) to hold the module PCB to the stand | 60 | |
+| M3x8 flat head screw (ISO7380) to hold the module PCB to the stand | 60 | |
 | M3 nut (ISO 4032) to hold the module PCB to the stand | 60 | |
-| M3x8 flat head screw (ISO7389) to hold the power button protector to the front panel PCB | 2 | |
+| M3x8 flat head screw (ISO7380) to hold the power button protector to the front panel PCB | 2 | |
 | M3 nut (ISO 4032) to hold the power button protector to the front panel PCB | 2 | |
-| M3x8 flat head screw (ISO7389) to hold the steel bolts to the profile | 16 | |
+| M3x8 flat head screw (ISO7380) to hold the steel bolts to the profile | 16 | |
