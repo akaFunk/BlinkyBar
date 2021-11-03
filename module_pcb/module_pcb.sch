@@ -2830,6 +2830,8 @@ F 0 "H7" H 6350 5299 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6350 5208 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6250 5250 50  0001 C CNN
 F 3 "~" H 6250 5250 50  0001 C CNN
+F 4 "DNP" H 6250 5250 50  0001 C CNN "MPN"
+F 5 "DNP" H 6250 5250 50  0001 C CNN "Manufacturer"
 	1    6250 5250
 	1    0    0    -1  
 $EndComp
@@ -2842,6 +2844,8 @@ F 0 "H1" H 6350 5599 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6350 5508 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6250 5550 50  0001 C CNN
 F 3 "~" H 6250 5550 50  0001 C CNN
+F 4 "DNP" H 6250 5550 50  0001 C CNN "MPN"
+F 5 "DNP" H 6250 5550 50  0001 C CNN "Manufacturer"
 	1    6250 5550
 	1    0    0    -1  
 $EndComp
@@ -2854,6 +2858,8 @@ F 0 "H2" H 6350 5899 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6350 5808 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6250 5850 50  0001 C CNN
 F 3 "~" H 6250 5850 50  0001 C CNN
+F 4 "DNP" H 6250 5850 50  0001 C CNN "MPN"
+F 5 "DNP" H 6250 5850 50  0001 C CNN "Manufacturer"
 	1    6250 5850
 	1    0    0    -1  
 $EndComp
@@ -2866,6 +2872,8 @@ F 0 "H3" H 7250 5299 50  0000 L CNN
 F 1 "MountingHole_Pad" H 7250 5208 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 7150 5250 50  0001 C CNN
 F 3 "~" H 7150 5250 50  0001 C CNN
+F 4 "DNP" H 7150 5250 50  0001 C CNN "MPN"
+F 5 "DNP" H 7150 5250 50  0001 C CNN "Manufacturer"
 	1    7150 5250
 	1    0    0    -1  
 $EndComp
@@ -2878,6 +2886,8 @@ F 0 "H4" H 7250 5599 50  0000 L CNN
 F 1 "MountingHole_Pad" H 7250 5508 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 7150 5550 50  0001 C CNN
 F 3 "~" H 7150 5550 50  0001 C CNN
+F 4 "DNP" H 7150 5550 50  0001 C CNN "MPN"
+F 5 "DNP" H 7150 5550 50  0001 C CNN "Manufacturer"
 	1    7150 5550
 	1    0    0    -1  
 $EndComp
@@ -2890,6 +2900,8 @@ F 0 "H5" H 7250 5899 50  0000 L CNN
 F 1 "MountingHole_Pad" H 7250 5808 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 7150 5850 50  0001 C CNN
 F 3 "~" H 7150 5850 50  0001 C CNN
+F 4 "DNP" H 7150 5850 50  0001 C CNN "MPN"
+F 5 "DNP" H 7150 5850 50  0001 C CNN "Manufacturer"
 	1    7150 5850
 	1    0    0    -1  
 $EndComp
@@ -2902,6 +2914,8 @@ F 0 "TP1" H 1158 5918 50  0000 L CNN
 F 1 "TP" H 1158 5827 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 1300 5800 50  0001 C CNN
 F 3 "~" H 1300 5800 50  0001 C CNN
+F 4 "DNP" H 1100 5800 50  0001 C CNN "MPN"
+F 5 "DNP" H 1100 5800 50  0001 C CNN "Manufacturer"
 	1    1100 5800
 	1    0    0    -1  
 $EndComp
@@ -2913,6 +2927,8 @@ F 0 "TP2" H 1458 5918 50  0000 L CNN
 F 1 "GND" H 1458 5827 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.5mm" H 1600 5800 50  0001 C CNN
 F 3 "~" H 1600 5800 50  0001 C CNN
+F 4 "DNP" H 1400 5800 50  0001 C CNN "MPN"
+F 5 "DNP" H 1400 5800 50  0001 C CNN "Manufacturer"
 	1    1400 5800
 	1    0    0    -1  
 $EndComp
@@ -3070,6 +3086,8 @@ F 0 "BT1" H 1058 1496 50  0000 L CNN
 F 1 "2x18650" H 1058 1405 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x01_P2.54mm_Vertical" V 950 1510 50  0001 C CNN
 F 3 "~" V 950 1510 50  0001 C CNN
+F 4 "DNP" H 950 1450 50  0001 C CNN "MPN"
+F 5 "DNP" H 950 1450 50  0001 C CNN "Manufacturer"
 	1    950  1450
 	1    0    0    -1  
 $EndComp
