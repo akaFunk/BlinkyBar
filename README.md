@@ -47,3 +47,10 @@ For the PCBs you will find lists in CSV format exported from KiCad in each of th
 | M3x8 flat head screw (ISO7380) to hold the power button protector to the front panel PCB | 2 | |
 | M3 nut (ISO 4032) to hold the power button protector to the front panel PCB | 2 | |
 | M3x8 flat head screw (ISO7380) to hold the steel bolts to the profile | 16 | |
+
+### Replacement parts
+Some MPN in the CSV/schematics are just some random ones, for example for pin headers, which fit and were available at the time of design. Those may be replaced with similar types. A (bar far not complete) list of such parts is given below:
+
+| Part | Description |Replacements |
+|---|---|---|
+|HSS2307 | P-Channel mosfet in SOT-23 with GSD pin order, should be fairly low R_ds(on), like below 30 mOhm @ 6V and continuos current handling of at least 3A, as it is used as main switch | WTM2300 |

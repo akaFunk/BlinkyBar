@@ -587,6 +587,8 @@ F 0 "H1" H 6200 6649 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6200 6558 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6100 6600 50  0001 C CNN
 F 3 "~" H 6100 6600 50  0001 C CNN
+F 4 "DNP" H 6100 6600 50  0001 C CNN "MPN"
+F 5 "DNP" H 6100 6600 50  0001 C CNN "Manufacturer"
 	1    6100 6600
 	1    0    0    -1  
 $EndComp
@@ -599,6 +601,8 @@ F 0 "H2" H 6200 6949 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6200 6858 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6100 6900 50  0001 C CNN
 F 3 "~" H 6100 6900 50  0001 C CNN
+F 4 "DNP" H 6100 6900 50  0001 C CNN "MPN"
+F 5 "DNP" H 6100 6900 50  0001 C CNN "Manufacturer"
 	1    6100 6900
 	1    0    0    -1  
 $EndComp
@@ -611,6 +615,8 @@ F 0 "H3" H 6200 7249 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6200 7158 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6100 7200 50  0001 C CNN
 F 3 "~" H 6100 7200 50  0001 C CNN
+F 4 "DNP" H 6100 7200 50  0001 C CNN "MPN"
+F 5 "DNP" H 6100 7200 50  0001 C CNN "Manufacturer"
 	1    6100 7200
 	1    0    0    -1  
 $EndComp
@@ -1231,6 +1237,8 @@ F 0 "H4" H 6200 7549 50  0000 L CNN
 F 1 "MountingHole_Pad" H 6200 7458 50  0000 L CNN
 F 2 "MountingHole:MountingHole_3.2mm_M3_Pad" H 6100 7500 50  0001 C CNN
 F 3 "~" H 6100 7500 50  0001 C CNN
+F 4 "DNP" H 6100 7500 50  0001 C CNN "MPN"
+F 5 "DNP" H 6100 7500 50  0001 C CNN "Manufacturer"
 	1    6100 7500
 	1    0    0    -1  
 $EndComp
@@ -1471,11 +1479,11 @@ L Device:Q_PMOS_SGD Q2
 U 1 1 61CC827D
 P 2250 1050
 F 0 "Q2" V 2592 1050 50  0000 C CNN
-F 1 "HSS2307" V 2501 1050 50  0000 C CNN
+F 1 "WTM2300" V 2501 1050 50  0000 C CNN
 F 2 "Package_TO_SOT_SMD:SOT-23W" H 2450 1150 50  0001 C CNN
 F 3 "~" H 2250 1050 50  0001 C CNN
-F 4 "HSS2307" H 2250 1050 50  0001 C CNN "MPN"
-F 5 "Huashuo" H 2250 1050 50  0001 C CNN "Manufacturer"
+F 4 "WTM2300" H 2250 1050 50  0001 C CNN "MPN"
+F 5 "WPMtek(Wei Pan Microelectronics)" H 2250 1050 50  0001 C CNN "Manufacturer"
 	1    2250 1050
 	0    1    -1   0   
 $EndComp
@@ -1604,6 +1612,8 @@ F 0 "BT1" H 758 1396 50  0000 L CNN
 F 1 "2x18650" H 758 1305 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x01_P2.54mm_Vertical" V 650 1410 50  0001 C CNN
 F 3 "~" V 650 1410 50  0001 C CNN
+F 4 "DNP" H 650 1350 50  0001 C CNN "Manufacturer"
+F 5 "DNP" H 650 1350 50  0001 C CNN "MPN"
 	1    650  1350
 	1    0    0    -1  
 $EndComp
@@ -1698,7 +1708,7 @@ F 0 "Q1" H 2555 1596 50  0000 L CNN
 F 1 "BSS123" H 2555 1505 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 2550 1475 50  0001 L CIN
 F 3 "http://www.diodes.com/assets/Datasheets/ds30366.pdf" H 2350 1550 50  0001 L CNN
-F 4 "ON Semiconductor" H 2350 1550 50  0001 C CNN "Manufacturer"
+F 4 "Changjiang Electronics Tech (CJ)" H 2350 1550 50  0001 C CNN "Manufacturer"
 F 5 "BSS123" H 2350 1550 50  0001 C CNN "MPN"
 	1    2350 1550
 	-1   0    0    -1  
@@ -1763,6 +1773,8 @@ F 0 "R5" V 9143 3800 50  0000 C CNN
 F 1 "100k" V 9234 3800 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric" V 9280 3800 50  0001 C CNN
 F 3 "~" H 9350 3800 50  0001 C CNN
+F 4 "YAGEO" H 9350 3800 50  0001 C CNN "Manufacturer"
+F 5 "RC0603FR-07100KL" H 9350 3800 50  0001 C CNN "MPN"
 	1    9350 3800
 	0    1    1    0   
 $EndComp
