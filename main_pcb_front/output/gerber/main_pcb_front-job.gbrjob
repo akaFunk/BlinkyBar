@@ -7,20 +7,20 @@
       "Application": "Pcbnew",
       "Version":     "5.1.10"
     },
-    "CreationDate":  "2021-10-29T21:37:18+02:00"
+    "CreationDate":  "2021-11-03T22:46:33+01:00"
   },
   "GeneralSpecs":
   {
     "ProjectId":
     {
-      "Name": "Module_PCB",
-      "GUID": "4d6f6475-6c65-45f5-9043-422e6b696361",
+      "Name": "main_pcb_front",
+      "GUID": "6d61696e-5f70-4636-925f-66726f6e742e",
       "Revision": "rev?"
     },
     "Size":
     {
-      "X": 247.550,
-      "Y": 25.050
+      "X": 95.650,
+      "Y": 95.650
     },
     "LayerNumber": 2,
     "BoardThickness":  1.600
@@ -31,56 +31,53 @@
       "Layers": "Outer",
       "PadToPad":  0.200,
       "PadToTrack":  0.200,
-      "TrackToTrack":  0.200,
-      "MinLineWidth":  0.200,
-      "TrackToRegion":  0.200,
-      "RegionToRegion":  0.200
+      "TrackToTrack":  0.200
     }
   ],
   "FilesAttributes":
   [
     {
-      "Path":  "Module_PCB-F_Cu.gtl",
+      "Path":  "main_pcb_front-F_Cu.gtl",
       "FileFunction":  "Copper,L1,Top",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "Module_PCB-B_Cu.gbl",
+      "Path":  "main_pcb_front-B_Cu.gbl",
       "FileFunction":  "Copper,L2,Bot",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "Module_PCB-F_Paste.gtp",
+      "Path":  "main_pcb_front-F_Paste.gtp",
       "FileFunction":  "SolderPaste,Top",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "Module_PCB-B_Paste.gbp",
+      "Path":  "main_pcb_front-B_Paste.gbp",
       "FileFunction":  "SolderPaste,Bot",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "Module_PCB-F_SilkS.gto",
+      "Path":  "main_pcb_front-F_SilkS.gto",
       "FileFunction":  "Legend,Top",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "Module_PCB-B_SilkS.gbo",
+      "Path":  "main_pcb_front-B_SilkS.gbo",
       "FileFunction":  "Legend,Bot",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "Module_PCB-F_Mask.gts",
+      "Path":  "main_pcb_front-F_Mask.gts",
       "FileFunction":  "SolderMask,Top",
       "FilePolarity":  "Negative"
     },
     {
-      "Path":  "Module_PCB-B_Mask.gbs",
+      "Path":  "main_pcb_front-B_Mask.gbs",
       "FileFunction":  "SolderMask,Bot",
       "FilePolarity":  "Negative"
     },
     {
-      "Path":  "Module_PCB-Edge_Cuts.gm1",
+      "Path":  "main_pcb_front-Edge_Cuts.gm1",
       "FileFunction":  "Profile",
       "FilePolarity":  "Positive"
     }

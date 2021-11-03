@@ -2972,7 +2972,7 @@ F 0 "Q2" H 2855 1696 50  0000 L CNN
 F 1 "BSS123" H 2855 1605 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 2850 1575 50  0001 L CIN
 F 3 "http://www.diodes.com/assets/Datasheets/ds30366.pdf" H 2650 1650 50  0001 L CNN
-F 4 "ON Semiconductor" H 2650 1650 50  0001 C CNN "Manufacturer"
+F 4 "Changjiang Electronics Tech (CJ) " H 2650 1650 50  0001 C CNN "Manufacturer"
 F 5 "BSS123" H 2650 1650 50  0001 C CNN "MPN"
 	1    2650 1650
 	-1   0    0    -1  
