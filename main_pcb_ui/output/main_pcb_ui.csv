@@ -1,0 +1,10 @@
+Reference, Quantity, Value, Footprint, Datasheet, MPN, Manufacturer
+D1 ,1,"LED","LED_THT:LED_D3.0mm","~","HL-304S9AD","HONGLITRONIC"
+J1 J2 J3 J4 ,4,"Conn_02x02_Odd_Even","Connector_PinSocket_2.54mm:PinSocket_2x02_P2.54mm_Vertical","~","C66690","BOOMELE"
+R1 ,1,"220","Resistor_SMD:R_0603_1608Metric","~","CR0603FA2200G","LIZ Elec"
+R2 R3 R4 R5 R6 ,5,"1k","Resistor_SMD:R_0603_1608Metric","~","RC0603JR-071KL","YAGEO"
+SW1 SW6 ,2,"SP+","Button_Switch_THT:SW_PUSH_6mm_H8mm","http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371","TS4570CJ","SHOU HAN"
+SW2 ,1,"SP-","Button_Switch_THT:SW_PUSH_6mm_H8mm","http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371","TS4570CJ","SHOU HAN"
+SW3 ,1,"TRIG","Button_Switch_THT:SW_PUSH_6mm_H8mm","http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371","TS4570CJ","SHOU HAN"
+SW4 ,1,"BR+","Button_Switch_THT:SW_PUSH_6mm_H8mm","http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371","TS4570CJ","SHOU HAN"
+SW5 ,1,"BR-","Button_Switch_THT:SW_PUSH_6mm_H8mm","http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371","TS4570CJ","SHOU HAN"

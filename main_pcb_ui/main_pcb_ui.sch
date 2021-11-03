@@ -482,10 +482,10 @@ F 3 "" H 2800 2050 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:GND #PWR?
+L power:GND #PWR0109
 U 1 1 617DE099
 P 5300 2800
-F 0 "#PWR?" H 5300 2550 50  0001 C CNN
+F 0 "#PWR0109" H 5300 2550 50  0001 C CNN
 F 1 "GND" H 5305 2627 50  0000 C CNN
 F 2 "" H 5300 2800 50  0001 C CNN
 F 3 "" H 5300 2800 50  0001 C CNN
@@ -493,10 +493,10 @@ F 3 "" H 5300 2800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Switch:SW_SPST SW?
+L Switch:SW_SPST SW6
 U 1 1 617DE0A2
 P 5300 2600
-F 0 "SW?" V 5254 2848 50  0000 L CNN
+F 0 "SW6" V 5254 2848 50  0000 L CNN
 F 1 "SP+" V 5345 2848 50  0000 L CNN
 F 2 "Button_Switch_THT:SW_PUSH_6mm_H8mm" H 5300 2900 50  0001 C CNN
 F 3 "http://www.apem.com/int/index.php?controller=attachment&id_attachment=1371" H 5300 2900 50  0001 C CNN
