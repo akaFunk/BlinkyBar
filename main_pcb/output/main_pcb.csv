@@ -15,7 +15,7 @@ J7 ,1,"UPDN","Connector_PinSocket_2.54mm:PinSocket_2x04_P2.54mm_Vertical","~","P
 J8 ,1,"ISP","Connector_IDC:IDC-Header_2x03_P2.54mm_Vertical","~","C11214","BOOMELE"
 J9 ,1,"BTN_TRIG","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","DNP","~"
 Q1 ,1,"BSS123","Package_TO_SOT_SMD:SOT-23","http://www.diodes.com/assets/Datasheets/ds30366.pdf","BSS123","Changjiang Electronics Tech (CJ)"
-Q2 ,1,"WTM2300","Package_TO_SOT_SMD:SOT-23W","~","WTM2300","WPMtek(Wei Pan Microelectronics)"
+Q2 ,1,"HSS2307","Package_TO_SOT_SMD:SOT-23W","~","HSS2307","Huashuo"
 R1 R7 R8 R19 ,4,"330","Resistor_SMD:R_0603_1608Metric","~","RC0603FR-07330RL","YAGEO"
 R11 ,1,"15k","Resistor_SMD:R_0603_1608Metric","~","RC0603JR-0715KL","YAGEO"
 R2 R12 R13 ,3,"1k","Resistor_SMD:R_0603_1608Metric","~","AC0603FR-071KL","YAGEO"

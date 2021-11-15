@@ -53,4 +53,3 @@ Some MPN in the CSV/schematics are just some random ones, for example for pin he
 
 | Part | Description |Replacements |
 |---|---|---|
-|HSS2307 | P-Channel mosfet in SOT-23 with GSD pin order, should be fairly low R_ds(on), like below 30 mOhm @ 6V and continuos current handling of at least 3A, as it is used as main switch | WTM2300 |
