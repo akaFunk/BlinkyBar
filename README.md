@@ -26,6 +26,7 @@ For the PCBs you will find lists in CSV format exported from KiCad in each of th
 | 3D-printed stand for the module PCB | 15 | module_stand |
 | 3D-printed power button protector | 1 | main_button_protector |
 | 3D-printed main case | 1 | main_case |
+| 3D-printed handle | 1 | main_handle |
 | 18650 Holder | 12 | 18650_holder |
 | Plate, 35x25x3 mm, Steel | 4 | module_plate |
 | Main PCB holding the Raspberry Pi Zero and the user interface PCB | 1 | main_pcb |
@@ -40,7 +41,8 @@ For the PCBs you will find lists in CSV format exported from KiCad in each of th
 | M3 nut (ISO 4032) to hold the main PCB in the case | 4 | |
 | M3x20 flat head screw (ISO7380) to hold the front panel PCB to the case | 4 | |
 | M3 nut (ISO 4032) to hold the front panel PCB to the case | 4 | |
-| M3x12 flat head screw (ISO7380) to hold the stand to the profile | 30 | |
+| M3x12 flat head screw (ISO7380) to hold the stand to the profile | 28 | |
+| M3x20 flat head screw (ISO7380) to hold the handle and two of the stands to the profile | 2 | |
 | M3 nut (ISO 4032) to hold the stand to the profile | 30 | |
 | M3x8 flat head screw (ISO7380) to hold the module PCB to the stand | 60 | |
 | M3 nut (ISO 4032) to hold the module PCB to the stand | 60 | |
