@@ -46,8 +46,8 @@ For the PCBs you will find lists in CSV format exported from KiCad in each of th
 | M3 nut (ISO 4032) to hold the stand to the profile | 30 | |
 | M3x8 flat head screw (ISO7380) to hold the module PCB to the stand | 60 | |
 | M3 nut (ISO 4032) to hold the module PCB to the stand | 60 | |
-| M3x8 flat head screw (ISO7380) to hold the power button protector to the front panel PCB | 2 | |
-| M3 nut (ISO 4032) to hold the power button protector to the front panel PCB | 2 | |
+| M2x5 flat head screw (ISO7380) to hold the power button protector to the front panel PCB | 2 | |
+| M2 nut (ISO 4032) to hold the power button protector to the front panel PCB | 2 | |
 | M3x8 flat head screw (ISO7380) to hold the steel bolts to the profile | 16 | |
 
 ### Replacement parts
