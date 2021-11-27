@@ -17,6 +17,7 @@ The protocoll is a single packet of 5 bytes in both directions. These 5 bytes ha
 | 1 | Command flags: <br> bit 0: start trigger<br>bit 1: stop trigger <br> bit 2: infinite repeat <br> If nothing is set, the Pi only wants to read the voltage/timer_counter and no action is carried out and the local state is not altered. |
 | 2 | Period of the trigger signal, given in µs |
 | 2 | On-time of the trigger signal, given in µs |
+| 1 | Dummy, always 0 |
 
 And the answer, which is returned in each request contains the following information:
 
@@ -25,7 +26,6 @@ And the answer, which is returned in each request contains the following informa
 | 1 | Dummy, always 0 |
 | 2 | Battery voltage, given in mV |
 | 2 | Current timer counter value of the current progress, which counts from 0 to the period value minus 1 |
-
-TODO: The power button is missing in the packet from AVR to Pi. The Pi needs to know if he has to shut down to shut down all modules first.
+| 1 | Shutdown request, 1 if the power button was pressed or the battery voltage is too low, otherwise 0 |
 
 TODO: Add a automatic shutdown if we have not heard from the Pi in a while. This would also be helpfull for the modules.

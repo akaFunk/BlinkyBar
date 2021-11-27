@@ -1,23 +1,3 @@
-/*
-All values as little endian
-Data Pi -> µC:
-    1 byte: command flags:
-        bit 0: start trigger
-        bit 1: stop trigger
-        bit 2: infinite repeat
-        If nothing is set, the Pi only wants to read the voltage/timer_counter
-        and no action is carried out and the local state is not altered.
-    2 byte: period, given in µs
-    2 byte: on time, given in µs (must be smaller than period)
-Data µC -> Pi:
-    1 byte: dummy, always 0
-    2 byte: Voltage, given in mV
-    2 byte: timer_counter, current progress
-
-TODO: The power button is missing. The Pi needs to know if he has to shut down to shut down all modules.
-TODO: Add a automatic shutdown if we have not heard from the Pi in a while
- */
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -61,6 +41,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t command;
     uint16_t period;
     uint16_t on_time;
+    uint8_t dummy;
 } command_t;
 static volatile command_t command_buffer;
 static uint8_t *command_buffer_data = (uint8_t*)&command_buffer;
@@ -72,6 +53,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t dummy;
     uint16_t voltage;
     uint16_t timer_counter;
+    uint8_t shutdown;
 } state_t;
 static volatile state_t state;
 static uint8_t *state_data = (uint8_t*)&state;
@@ -146,6 +128,8 @@ int main()
     timer_trigger_count = 10;
     timer_infinite_repeat = 0;
     timer_init();
+
+    state.shutdown = 0;
     sei();
 
     while(1)
@@ -160,8 +144,9 @@ int main()
         if(voltage < MIN_VOLTAGE)
         {
             // Request a shutdown of the Pi
+            state.shutdown = 1;
             pi_shtdn_high();
-            _delay_ms(5000);  // Wait 5 seconds for the Pi to shutdown
+            _delay_ms(10000);  // Wait 10 seconds for the Pi to shutdown
             pwr_on_low();
         }
         _delay_ms(1);
