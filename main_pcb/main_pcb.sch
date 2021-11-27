@@ -1162,7 +1162,7 @@ Text Label 8900 4700 0    50   ~ 0
 PD2
 Text Label 5850 1700 0    50   ~ 0
 PD2
-Text Label 8900 5100 0    50   ~ 0
+Text Label 8900 2900 0    50   ~ 0
 TRIG
 Text Label 8900 4000 0    50   ~ 0
 PWR_EN
@@ -1717,7 +1717,6 @@ Wire Wire Line
 	2900 950  2900 900 
 Connection ~ 2550 950 
 NoConn ~ 8900 2800
-NoConn ~ 8900 2900
 NoConn ~ 7700 3000
 Text Label 5300 6750 0    50   ~ 0
 BTN_TRIG
@@ -1780,4 +1779,5 @@ F 5 "SD103AW" H 9500 3800 50  0001 C CNN "MPN"
 	1    9500 3800
 	-1   0    0    1   
 $EndComp
+NoConn ~ 8900 5100
 $EndSCHEMATC
