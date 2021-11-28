@@ -16,7 +16,6 @@ class AvrCtrl:
             ("trigger_count", ctypes.c_uint16)
         ]
 
-
     class Answer(ctypes.LittleEndianStructure):
         _pack_ = 1
         _fields_ = [
@@ -26,7 +25,6 @@ class AvrCtrl:
             ("shutdown", ctypes.c_ubyte),
             ("magic1", ctypes.c_ubyte)
         ]
-
 
     def __init__(self, bus:int=1, device:int=0) -> None:
         self.spi = spidev.SpiDev()
@@ -40,7 +38,6 @@ class AvrCtrl:
         self.msg.on_time = 500
         self.msg.trigger_count = 10
 
-
     def _querry(self, start_flag:bool=False, stop_flag:bool=False) -> None:
         self.msg.command = (self.msg.command & 0x04) | (start_flag + stop_flag*2)
         data = bytearray(self.msg)
@@ -50,31 +47,41 @@ class AvrCtrl:
             raise Exception(f"Got invalid answer from AVR: Wrong magic byte(s): 0x{ans.magic0:02x}/0x{ans.magic1:02x} instead of 0x31/0x41")
         return ans
 
-
     def set_values(self, period:int, on_time:int, trigger_count:int, infinite_repeat_flag:bool=False) -> None:
         self.msg.command = infinite_repeat_flag*4
         self.msg.period = period
         self.msg.on_time = on_time
         self.msg.trigger_count = trigger_count
 
+    def set_period(self, period:int) -> None:
+        self.msg.period = period
+
+    def set_on_time(self, on_time:int) -> None:
+        self.msg.on_time = on_time
+
+    def set_trigger_count(self, trigger_count:int) -> None:
+        self.msg.trigger_count = trigger_count
+
+    def set_infinite_repeat(self, infinite_repeat:bool) -> None:
+        self.msg.command = infinite_repeat*4
 
     def start_trigger(self) -> None:
         self._querry(True)
 
-
     def stop_trigger(self) -> None:
         self._querry(False, True)
-
 
     def get_voltage(self) -> float:
         ans = self._querry()
         return ans.voltage/1000.0
 
-
     def get_shutdown(self) -> bool:
         ans = self._querry()
         return bool(ans.shutdown)
 
+    def get_timer_counter(self) -> int:
+        ans = self._querry()
+        return int(ans.timer_counter)
 
 # The script can be run directly, but this is just for tests and debugging
 def main():
@@ -88,6 +95,7 @@ def main():
     avrctrl.start_trigger()
     time.sleep(5)
     avrctrl.stop_trigger()
+
 
 if __name__ == "__main__":
     main()
