@@ -177,12 +177,14 @@ ISR(SPI_STC_vect)
 // PB2 aka ~SS pin toggle interrupt
 ISR(PCINT0_vect)
 {
-    // Only trigger on rising edge, i.e., de-selection
+    // On selection, write the first byte (magic0)
     if(!(PINB & (1<<2)))
+    {
+        SPDR = answer_data[0];
         return;
+    }
     
-    // Set next answer byte to 0 and reset byte cnt
-    SPDR = 0x00;
+    // Reset byte count
     spi_byte_cnt = 0;
 
     // Interprete the SPI RX buffer
