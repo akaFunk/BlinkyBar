@@ -99,7 +99,7 @@ int main()
     pwr_on_init();
     pwr_on_low();
 
-      // Wait 2 seconds before we actually turn on the power while flashing the LED
+    // Wait 2 seconds before we actually turn on the power while flashing the LED
     for(int i = 0; i < 20; i++)
     {
         _delay_ms(100);
@@ -129,6 +129,7 @@ int main()
     timer_trigger_count = 10;
     timer_infinite_repeat = 0;
     timer_init();
+    timer_on();  // Do a dummy sequence to prepare the OC1A pin
 
     answer.shutdown = 0;
     answer.dummy0 = 0;
