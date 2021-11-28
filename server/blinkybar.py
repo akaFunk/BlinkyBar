@@ -14,6 +14,7 @@ import configparser
 import numpy as np
 from message import *
 from colortemperaturetable import *
+from avrctrl import AvrCtrl
 
 import logging
 #logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s ", level=logging.DEBUG)
@@ -301,6 +302,7 @@ class ModuleController(Thread):
         self.playing = False
         self.image = Image.open("image.png")
         self.progress_extra_steps = 0
+        self.avrctrl = AvrCtrl(config["avr_spi_bus"], config["avr_spi_device"])
 
         log_info(f"Found {self.module_cnt} modules with {self.height} pixels")
 
@@ -332,6 +334,7 @@ class ModuleController(Thread):
     # or uploading it to the modules.
     def run(self):
         while True:
+            # TODO: Check shutdown (maybe not here, this loop blocks until a new command is available)
             command_data = self.command_queue.get()
             log_debug(f"Processing command: {command_data['command']}")
             if command_data["command"] == "init_modules":
@@ -431,7 +434,6 @@ class ModuleController(Thread):
                         # Cut the data, convert it to numpy and send it to the module
                         data_cut = module_data[mid][bid*256:(bid+1)*256]
                         data_cut = np.frombuffer(data_cut, dtype=np.uint8)
-                        print(data_cut)
                         if not self.router.send_image_append(mid, data_cut):
                             log_error(f"Unable to send image data to module {mid}")
                             break
@@ -444,14 +446,22 @@ class ModuleController(Thread):
                             break
                 self.update_progress("ready", "", 0.0)
                 log_info("Upload done")
+
+                # Set the current image width as trigger count for the main AVR
+                self.avrctrl.set_trigger_count(width)
             elif command_data["command"] == "set_speed":
-                # TODO: Send new speed value to microcontroller
-                log_info(f"Set speed to {self.led_settings['speed']} m/s")
+                # We want 5.5 mm per LED, the period needs to be in microseconds per column
+                period = int(1/(self.led_settings['speed']*1000)*1e6)
+                if period > 65565:
+                    period = 65565
+                self.avrctrl.set_period(period)
+                self.avrctrl.set_on_time(int(period/2))  # TODO: Maybe we want to choose a different duty cycle here
+                log_info(f"Set speed to {self.led_settings['speed']} m/s, {period} µs/column")
             elif command_data["command"] == "set_repeat":
                 # TODO: Send new repeat value to microcontroller
                 log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
             elif command_data["command"] == "set_pixel_mode":
-                # TODO: Send new pixel_mode value to microcontroller
+                # TODO: Send new pixel_mode value to modules
                 log_info(f"Sent pixel_mode value of {self.led_settings['pixel_mode']} to modules")
             elif command_data["command"] == "trigger":
                 self.led_settings["progress_status"] = "playing"
@@ -473,9 +483,15 @@ class ModuleController(Thread):
                 # TODO: Send trigger to microcontroller on main board
                 # TODO: Find something how we can know the current state without estimating it.
                 # TODO: Probably the µC on the host board can tell us the current state using its serial wire.
+                self.led_settings["progress_value"] = 0.0
+                self.led_settings["progress_status"] = "playing"
+                if not self.router.send_prep(0):
+                    log_error("Unable to send prepare message")
+                self.avrctrl.start_trigger()
+                log_info("Trigger sent")
 
                 # TODO: This is just for debug purposes: Send trigger directly to modules with 1s delay between each trigger
-                log_info(f"Will trigger {self.width} times")
+                """log_info(f"Will trigger {self.width} times")
                 self.led_settings["progress_value"] = 0.0
                 if not self.router.send_prep(0):
                     log_error("Unable to send prepare message")
@@ -487,9 +503,22 @@ class ModuleController(Thread):
                     time.sleep(1)
                 self.led_settings["progress_value"] = 0.0
                 self.led_settings["progress_status"] = "ready"
-                log_info(f"Playback done")
+                log_info(f"Playback done")"""
 
-                # TODO: Once playback is done, we need to tell the modules to turn off the LEDs
+                # Update the state
+                while self.playing is True:
+                    # TODO: Once playback is done, we need to tell the modules to turn off the LEDs
+                    # Update the state
+                    timer_counter = self.avrctrl.get_timer_counter()
+                    self.led_settings["progress_value"] = timer_counter/self.image_scaled.size[0]
+                    if timer_counter == 0:  # TODO: This is not sufficient, if we are playing continously this might be 0 sometimes - we should have a flag for "done"
+                        break
+                log_info("Play done")
+                self.led_settings["progress_value"] = 0.0
+                self.led_settings["progress_status"] = "ready"
+                self.playing = False
+                self.avrctrl.stop_trigger() # Make sure the trigger is stopped, for example if the user requested the stop
+                # TODO: Send all modules a message to turn off the LEDs
 
     def init_modules(self):
         self.command_queue.put({"command": "init_modules"})
@@ -733,6 +762,8 @@ if __name__ == '__main__':
     if config["port_down"] == "none":
         config["port_down"] = None
     config["baudrate"] = float(cfgparser.get("blinkybar", "baudrate"))
+    config["avr_spi_bus"] = int(cfgparser.get("blinkybar", "avr_spi_bus"))
+    config["avr_spi_device"] = int(cfgparser.get("blinkybar", "avr_spi_device"))
 
     log_info("Started BlinkyBar Server")
 
@@ -741,7 +772,8 @@ if __name__ == '__main__':
         '/': {
             'tools.staticdir.root': static_dir,
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': ''
+            'tools.staticdir.dir': '',
         }
     }
+    cherrypy.config.update({'server.socket_host': '192.168.178.60'})
     cherrypy.quickstart(WebServer(config), '/', conf)
