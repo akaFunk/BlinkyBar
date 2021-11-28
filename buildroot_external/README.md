@@ -17,14 +17,32 @@ make
 
 Das SD-Karten-Image liegt im Buildrootordner unter output/images/sdcard.img.
 
-## Using RaspiOS
+## Using Raspberry Pi OS
 Here is a step-by-step guide on how to set up a RaspiOS for the BlinkyBar. It is also helpful if you want to learn what we have done to the buildroot to get everything up and running.
 
 ### Connecting to the Pi
-TODO: Using serial line on debug pin header
+The system is a so-called headless-system. You don't have (need) a monitor or keyboard. To get access to the Pi there are several options. The easiest one is to use Wifi and SSH. We will first tell the Pi to connect to your local Wifi network and enable SSH. Later, we will reconfigure the Pi to provide an access point. This has to be done later, as we will need to download some stuff.
+
+Flash the Raspberry Pi OS image to an SD card. After that open the boot partition and create a file called `ssh`, which will tell the Pi to enable the ssh server upon first boot. Then create a second file called `wpa_supplicant.conf` with the following content:
+`
+country=US
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+    ssid="SSID"
+    psk="PASSWORD"
+}`
+Replace `SSID` with your network name, keep the quotes. Also set the password. You may also want to change the country, which will influence what frequencies the Pi is allowed to use due to different regulatory rules in different countries.
+
+Plug the SD card into the Pi and power it on by pressing the power button for at least 2 seconds. Now open the configuration site of your local Wifi router and find out the IP address of the Pi, connect to it using ssh:
+```sh
+$ ssh pi@IPADDRESS
+```
+The default password is `raspberry`.
 
 ### Device tree configuration
-We need a custom device tree configuration to enable support for the SPI1 and the SC16IS752. Add the following lines to `/boot/config.txt`:
+We need a custom device tree configuration to enable support for SPI1 and the SC16IS752 SPI to dual-UART converter. Add the following lines to `/boot/config.txt` at the very bottom:
 ```text
 dtoverlay=spi1-1cs
 dtoverlay=sc16is752-spi0,int_pin=24,xtal=16000000
@@ -33,13 +51,23 @@ The first line enables SPI1 with one chip-select (GPIO18). SPI1.0 is used as the
 
 After a reboot, make sure you have the SPI1 interface at `/dev/spidev1.0` and the two serial interfaces at `/dev/ttySC0` and `/dev/ttySC1`.
 
+
+### Dependencies
+You need to install a few things before you can start the BlinkyBar main application:
+```sh
+$ sudo apt install python3-pip libopenjp2-7V python3-numpy
+$ pip3 install cherrypy pillow ujson pyserial
+```
+
+Note: numpy is not installed through pip, as we experienced an issue with libcblas.so.3. Raspberry Pi OS puts the symbols into libblas.so and numpy needs to be linked against this library, which is not the case for the current PyPi version.
+
 ### BlinkyBar Server
 TODO
 
 ### Autostart
 TODO
 
-### Wifi
+### Wifi access point
 The Pi will generate a Wifi access point. You connect to it and open the website provided by the BlinkyBar server.
 
 TODO
