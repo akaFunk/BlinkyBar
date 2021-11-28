@@ -164,6 +164,16 @@ class PacketRouter:
         msg = Message(MESSAGE_TYPE_PING, [], addr)
         log_debug(f"Sending ping to {addr} on {port.port}")
         return self.send_message_port(port, msg)
+
+    def send_state(self, port, addr, value):
+        msg = Message(MESSAGE_TYPE_STAT, [value], addr)
+        log_debug(f"Sending state {value} to {addr} on {port.port}")
+        return self.send_message_port(port, msg)
+
+    # Turn off all LEDs on all ports by sending a state to each module
+    def send_reset_leds(self):
+        for t in self.module_port_addr_mirror:
+            self.send_state(t["port"], t["addr"], 0)
     
     # Send a prepare message, which will cause the modules to load the first image column
     # from flash into ram.
@@ -518,7 +528,7 @@ class ModuleController(Thread):
                 self.led_settings["progress_status"] = "ready"
                 self.playing = False
                 self.avrctrl.stop_trigger() # Make sure the trigger is stopped, for example if the user requested the stop
-                # TODO: Send all modules a message to turn off the LEDs
+                self.router.send_reset_leds() # Turn off all LEDs
 
     def init_modules(self):
         self.command_queue.put({"command": "init_modules"})
