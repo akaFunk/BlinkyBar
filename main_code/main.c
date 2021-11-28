@@ -50,11 +50,11 @@ static uint8_t *command_buffer_data = (uint8_t*)&command_buffer;
 #define COMMAND_INFINITE_REPEAT 0x04
 
 typedef struct __attribute__((__packed__)) {
-    uint8_t dummy0;
+    uint8_t magic0;
     uint16_t voltage;
     uint16_t trigger_counter;
     uint8_t shutdown;
-    uint8_t dummy1;
+    uint8_t magic1;
 } answer_t;
 static volatile answer_t answer;
 static uint8_t *answer_data = (uint8_t*)&answer;
@@ -132,8 +132,8 @@ int main()
     timer_on();  // Do a dummy sequence to prepare the OC1A pin
 
     answer.shutdown = 0;
-    answer.dummy0 = 0;
-    answer.dummy1 = 0;
+    answer.magic0 = 0x31;
+    answer.magic1 = 0x41;
     sei();
 
     while(1)

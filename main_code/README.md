@@ -23,10 +23,10 @@ And the answer, which is returned in each request contains the following informa
 
 | Bytes | Meaning |
 |---|---|
-| 1 | Dummy, always 0 |
+| 1 | Magic byte, always 0x31 |
 | 2 | Battery voltage, given in mV |
 | 2 | Current timer counter value of the current progress, which counts from 0 to the period value minus 1 |
 | 1 | Shutdown request, 1 if the power button was pressed or the battery voltage is too low, otherwise 0 |
-| 1 | Dummy, always 0 |
+| 1 | Magic byte, always 0x41 |
 
 TODO: Add a automatic shutdown if we have not heard from the Pi in a while. This would also be helpfull for the modules.
