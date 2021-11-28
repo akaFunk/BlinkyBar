@@ -41,7 +41,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t command;
     uint16_t period;
     uint16_t on_time;
-    uint8_t dummy;
+    uint16_t trigger_count;
 } command_t;
 static volatile command_t command_buffer;
 static uint8_t *command_buffer_data = (uint8_t*)&command_buffer;
@@ -50,13 +50,14 @@ static uint8_t *command_buffer_data = (uint8_t*)&command_buffer;
 #define COMMAND_INFINITE_REPEAT 0x04
 
 typedef struct __attribute__((__packed__)) {
-    uint8_t dummy;
+    uint8_t dummy0;
     uint16_t voltage;
-    uint16_t timer_counter;
+    uint16_t trigger_counter;
     uint8_t shutdown;
-} state_t;
-static volatile state_t state;
-static uint8_t *state_data = (uint8_t*)&state;
+    uint8_t dummy1;
+} answer_t;
+static volatile answer_t answer;
+static uint8_t *answer_data = (uint8_t*)&answer;
 
 // Timer
 static uint16_t timer_period;
@@ -73,7 +74,7 @@ void timer_init()
     TCCR1B = (1<<WGM12) | (1<<WGM13);  // Fast PWM mode, TOP = ICR1, no clock
     ICR1 = timer_period - 1;
     OCR1A = timer_on_time - 1;
-    state.timer_counter = timer_trigger_count;
+    answer.trigger_counter = timer_trigger_count;
 }
 
 uint16_t get_voltage()
@@ -129,7 +130,9 @@ int main()
     timer_infinite_repeat = 0;
     timer_init();
 
-    state.shutdown = 0;
+    answer.shutdown = 0;
+    answer.dummy0 = 0;
+    answer.dummy1 = 0;
     sei();
 
     while(1)
@@ -139,12 +142,12 @@ int main()
         uint16_t voltage = get_voltage();
         if(PINB & (1<<2))
         {
-            state.voltage = voltage;
+            answer.voltage = voltage;
         }
         if(voltage < MIN_VOLTAGE)
         {
             // Request a shutdown of the Pi
-            state.shutdown = 1;
+            answer.shutdown = 1;
             pi_shtdn_high();
             _delay_ms(10000);  // Wait 10 seconds for the Pi to shutdown
             pwr_on_low();
@@ -162,10 +165,10 @@ ISR(SPI_STC_vect)
 
     // Write next byte and increment byte counter
     // spi_byte_cnt is still 0 after the first byte has been received, so we transmit
-    // state_data[spi_byte_cnt+1]
+    // answer_data[spi_byte_cnt+1]
     if(spi_byte_cnt + 1 < sizeof(command_t))
     {
-        SPDR = state_data[spi_byte_cnt+1];
+        SPDR = answer_data[spi_byte_cnt+1];
         spi_byte_cnt++;
     }
 }
@@ -186,6 +189,7 @@ ISR(PCINT0_vect)
     {
         timer_period = command_buffer.period;
         timer_on_time = command_buffer.on_time;
+        timer_trigger_count = command_buffer.trigger_count;
     }
     timer_infinite_repeat = !!(command_buffer.command & COMMAND_INFINITE_REPEAT);
     if(command_buffer.command & COMMAND_START_TRIGGER)
@@ -203,12 +207,12 @@ ISR(PCINT0_vect)
 ISR(TIMER1_OVF_vect)
 {
     led_toggle();
-    state.timer_counter--; // Count the columns
-    if(!state.timer_counter)
+    answer.trigger_counter--; // Count the columns
+    if(!answer.trigger_counter)
     {
         // Reset counter or turn off trigger signal
         if(timer_infinite_repeat) {
-            state.timer_counter = timer_trigger_count;
+            answer.trigger_counter = timer_trigger_count;
         } else {
             timer_off();
         }
