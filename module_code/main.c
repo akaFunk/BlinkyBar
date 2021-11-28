@@ -222,14 +222,15 @@ void transmit_response(uint8_t success)
 
 void display_status(uint8_t status)
 {
-    uint8_t status_led_data[3*8];
     for(uint8_t k = 0; k < 8; k++)
     {
-        status_led_data[k*3+0] = ((status<<k)&0x80)>>2;
-        status_led_data[k*3+1] = 0;
-        status_led_data[k*3+2] = 0;
+        rgb_data[k*3+0] = ((status<<k)&0x80)>>2;
+        rgb_data[k*3+1] = 0;
+        rgb_data[k*3+2] = 0;
     }
-    ws2812b_send_column(status_led_data, 8);
+    for(uint8_t k = 8*3; k < LED_COUNT*3; k++)
+        rgb_data[k] = 0;
+    ws2812b_send_column(rgb_data, LED_COUNT);
     _delay_ms(1);
 }
 
