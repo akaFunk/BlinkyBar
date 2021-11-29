@@ -98,7 +98,7 @@ int main()
     LED_DDR |= (1<<LED_PIN);
 
     // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
-    _delay_ms(200);  // TODO: Reset to ~2000
+    _delay_ms(2000);
     PWR_EN_PORT |= (1<<PWR_EN_PIN);
 
     ws2812b_init();
@@ -106,8 +106,9 @@ int main()
     flash_init();
     flash_sm_init();
     sei();
+    // TODO: Add ADC for battery monitoring
 
-    // TODO: Shutdown ALL LEDs
+    // Disable all LEDs
     display_status(0);
 
     // Set up trigger interrupt
