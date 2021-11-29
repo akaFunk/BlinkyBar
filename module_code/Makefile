@@ -9,7 +9,7 @@ EFU = 0xFD
 PROGRAMMER=atmelice_isp
 PORT=usb
 
-BIN=blinkybar_module
+BIN=module
 OBJS=main.o uart.o fifo.o ws2812b.o flash.o flash_sm.o
 AVRDUDE=avrdude
 CC=avr-gcc
