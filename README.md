@@ -35,6 +35,7 @@ For the PCBs you will find lists in CSV format exported from KiCad in each of th
 | Main PCB user interface holding a few buttons and an LED | 1 | main_pcb_ui |
 | Module PCB with the LEDs | 10 | module_pcb |
 | M4x10 wing screw (DIN 316) | 4 | |
+| M3x5 flat head screw (ISO7380) to hold the case to the profile | 2 | |
 | M3x4 countersunk head screw (ISO 14581) to hold the battery holders | 24 | |
 | M3 nut (ISO 4032) to hold the battery holders in the main case | 4 | |
 | M3x8 flat head screw (ISO7380) to hold the main PCB in the case | 4 | |
