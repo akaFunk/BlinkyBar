@@ -90,7 +90,7 @@ class PacketRouter:
         port_list = [self.ser_port_top, self.ser_port_bottom]
         port_name_list = ["top", "bottom"]
         module_cnt = [0, 0]
-        mirror = [True, False]
+        mirror = [False, True]
         for p in range(len(port_list)):
             port = port_list[p]
             port_name = port_name_list[p]
@@ -437,9 +437,9 @@ class ModuleController(Thread):
                 num_packets = math.ceil(len(module_data[mid])/256)
                 for mid in range(len(module_data)):
                     # Start a new image for that module
+                    log_info(f"Sending image data to module {mid}")
                     if not self.router.send_image_new(mid):
                         log_error(f"Unable to send new image command to module {mid}")
-                    self.router.send_image_new(mid)
                     for bid in range(num_packets):
                         # Cut the data, convert it to numpy and send it to the module
                         data_cut = module_data[mid][bid*256:(bid+1)*256]
@@ -495,8 +495,9 @@ class ModuleController(Thread):
                 # TODO: Probably the µC on the host board can tell us the current state using its serial wire.
                 self.led_settings["progress_value"] = 0.0
                 self.led_settings["progress_status"] = "playing"
-                if not self.router.send_prep(0):
-                    log_error("Unable to send prepare message")
+                for mid in range(len(module_data)):
+                    if not self.router.send_prep(mid):
+                        log_error(f"Unable to send prepare message to module {mid}")
                 self.avrctrl.start_trigger()
                 log_info("Trigger sent")
 
