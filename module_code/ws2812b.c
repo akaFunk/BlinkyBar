@@ -106,5 +106,5 @@ void ws2812b_send_column(uint8_t* data_ptr, uint8_t led_cnt)
 void ws2812b_trigger()
 {
 	WS2812B_CLR();
-	_delay_us(200);
+	_delay_us(55);
 }
