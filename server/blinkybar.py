@@ -170,6 +170,10 @@ class PacketRouter:
         log_debug(f"Sending state {value} to {addr} on {port.port}")
         return self.send_message_port(port, msg)
 
+    def send_pixel_mode(self, module_nr, pixel_mode:bool):
+        msg = Message(MESSAGE_TYPE_PIXEL_MODE, [pixel_mode])
+        return self.send_message_module(module_nr, msg, True)
+
     # Turn off all LEDs on all ports by sending a state to each module
     def send_reset_leds(self):
         for t in self.module_port_addr_mirror:
@@ -472,6 +476,9 @@ class ModuleController(Thread):
                 log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
             elif command_data["command"] == "set_pixel_mode":
                 # TODO: Send new pixel_mode value to modules
+                for mid in range(len(module_data)):
+                    if not self.router.send_pixel_mode(mid, self.led_settings['pixel_mode']):
+                        log_error(f"Unable to send new pixel mode to module {mid}")
                 log_info(f"Sent pixel_mode value of {self.led_settings['pixel_mode']} to modules")
             elif command_data["command"] == "trigger":
                 self.led_settings["progress_status"] = "playing"
