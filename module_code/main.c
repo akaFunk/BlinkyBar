@@ -20,6 +20,7 @@
 
 #define TRIG_DDR                    DDRC  // PCINT8
 #define TRIG_PORT                   PORTC
+#define TRIG_IN                     PINC
 #define TRIG_PIN                    0
 
 #define LED_DDR                     DDRC
@@ -40,6 +41,7 @@
 #define MESSAGE_TYPE_IMG_APP        0x41    // Next image data block, len=1..256, must be 256 for all messages except the last one for an image
 #define MESSAGE_TYPE_PREP           0x50    // All data transmitted to modules, prepare for trigger, len=0
 #define MESSAGE_TYPE_TRIG           0x51    // Trigger a column - just for debug purposes, normal operation though TRIGI signal interrupt
+#define MESSAGE_TYPE_PIXEL_MODE     0x60    // Set the trigger mode, len=1 (trigger_mode), response with ACK
 #define MESSAGE_TYPE_ACK            0xf0    // ACK last message (also used as pong), len=0
 #define MESSAGE_TYPE_NACK           0xf1    // NACK last message, len=0
 
@@ -87,6 +89,7 @@ void debug_flash();
 void debug_flash_sm();
 
 static message_t msg;  // message buffer
+static uint8_t pixel_mode = 1;  // pixel mode enabled if true
 
 int main()
 {
@@ -199,6 +202,11 @@ void process_message(message_t* msg)
         flash_sm_read_image_start();
         flash_sm_read_image_data(rgb_data, LED_COUNT*3);
         break;
+    case MESSAGE_TYPE_PIXEL_MODE:
+        if(msg->len != 1)
+            return transmit_response(0);
+        pixel_mode = msg->data[0];
+        break;
     case MESSAGE_TYPE_TRIG:
         // Send data to LEDs and load new data after that
         ws2812b_send_column(rgb_data, LED_COUNT);
@@ -242,9 +250,35 @@ ISR(PCINT1_vect)
     if(!reading)
         return;
 
-    // Send data to LEDs and load new data after that
-    ws2812b_send_column(rgb_data, LED_COUNT);
-    flash_sm_read_image_data(rgb_data, LED_COUNT*3);
+    if(pixel_mode)
+    {
+        // Update pixels in any case
+        ws2812b_send_column(rgb_data, LED_COUNT);
+        ws2812b_trigger();
+
+        if(!(TRIG_IN & (1<<TRIG_PIN)))
+        {
+            // Load zeros on falling edge
+            for(uint8_t i = 0; i < LED_COUNT*3; i++)
+                rgb_data[i] = 0;
+        }
+        else
+        {
+            // Load image data on rising edge
+            flash_sm_read_image_data(rgb_data, LED_COUNT*3);
+        }
+    }
+    else
+    {
+        // On falling edge update pixels and load new data
+        if(!(TRIG_IN & (1<<TRIG_PIN)))
+        {
+            ws2812b_send_column(rgb_data, LED_COUNT);
+            ws2812b_trigger();
+            flash_sm_read_image_data(rgb_data, LED_COUNT*3);
+        }
+        // Do nothing on rising edge when not in pixel mode
+    }
 }
 
 void debug_flash_sm()
