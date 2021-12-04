@@ -15,6 +15,7 @@ import numpy as np
 from message import *
 from colortemperaturetable import *
 from avrctrl import AvrCtrl
+import RPi.GPIO as GPIO
 
 import logging
 #logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s ", level=logging.DEBUG)
@@ -318,6 +319,10 @@ class ModuleController(Thread):
         self.progress_extra_steps = 0
         self.avrctrl = AvrCtrl(config["avr_spi_bus"], config["avr_spi_device"])
 
+        # Set up GPIOs
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(0, GPIO.IN)
+
         log_info(f"Found {self.module_cnt} modules with {self.height} pixels")
 
         self.led_settings = {
@@ -347,195 +352,210 @@ class ModuleController(Thread):
     # This is a separate thread doing all the time-intensive tasks, like scaling the image
     # or uploading it to the modules.
     def run(self):
+        command_queue_internal = Queue()
+        last_trigger = True
         while True:
-            # TODO: Check shutdown (maybe not here, this loop blocks until a new command is available)
-            command_data = self.command_queue.get()
-            log_debug(f"Processing command: {command_data['command']}")
-            if command_data["command"] == "init_modules":
-                # Send a reset command
-                self.router.find_modules()
-                # TODO: We need to update module_cnt and height - maybe also trigger an image upload
-                # TODO: Calling this command will currently do bad things if the arrangement of the
-                # TODO: modules changed.
-            elif command_data["command"] == "save_image":
-                self.update_progress("processing", "Saving image", 0.0)
-                # Convert image to RGB
-                self.image = self.image.convert("RGB")
-                # Save new original image as png
-                # The compression level is chosen fairly low to speed things up
-                self.image.save("image.png", compress_level=1)
-                log_info("Saved original image")
-            elif command_data["command"] == "update_image":
-                self.update_progress("processing", "Scaling image", 0.2)
-                log_info("Processing new image")
+            time.sleep(0.1)
+            # TODO: Check shutdown pin (maybe not here, this loop blocks until a new command is available)
+            # Check if trigger button is pushed
+            new_trigger = GPIO.input(0)
+            if not new_trigger and last_trigger: # Detect falling edge of button trigger line
+                command_queue_internal.put({"command": "trigger"})
+            last_trigger = new_trigger
 
-                # Apply color temperature correction
-                temp_sel = self.led_settings['color_temperature']
-                # Get the closest RGB values from the table
-                r, g, b = get_color_temperatures(temp_sel)
-                matrix = (r/255.0, 0.0, 0.0, 0.0,
-                    0.0, g/255.0, 0.0, 0.0,
-                    0.0, 0.0, b/255.0, 0.0)
-                self.image_scaled = self.image.convert('RGB', matrix)
-                log_debug(f"Applied color temperature of {temp_sel} K")
+            # Move stuff from command_queue to command_queue_internal
+            while not self.command_queue.empty():
+                command_queue_internal.put(self.command_queue.get())
 
-                # Apply brightness correction
-                enhancer = ImageEnhance.Brightness(self.image_scaled)
-                log_debug(f"Brightness: {self.led_settings['brightness']}")
-                self.image_scaled = enhancer.enhance(self.led_settings["brightness"])
-                log_debug(f"Applied brightness of {self.led_settings['brightness']*100}%")
+            # Process messages
+            if not command_queue_internal.empty():
+                command_data = command_queue_internal.get()
+                log_debug(f"Processing command: {command_data['command']}")
+                if command_data["command"] == "init_modules":
+                    # Send a reset command
+                    self.router.find_modules()
+                    # TODO: We need to update module_cnt and height - maybe also trigger an image upload
+                    # TODO: Calling this command will currently do bad things if the arrangement of the
+                    # TODO: modules changed.
+                elif command_data["command"] == "save_image":
+                    self.update_progress("processing", "Saving image", 0.0)
+                    # Convert image to RGB
+                    self.image = self.image.convert("RGB")
+                    # Save new original image as png
+                    # The compression level is chosen fairly low to speed things up
+                    self.image.save("image.png", compress_level=1)
+                    log_info("Saved original image")
+                elif command_data["command"] == "update_image":
+                    self.update_progress("processing", "Scaling image", 0.2)
+                    log_info("Processing new image")
 
-                # TODO: Crop image if required
+                    # Apply color temperature correction
+                    temp_sel = self.led_settings['color_temperature']
+                    # Get the closest RGB values from the table
+                    r, g, b = get_color_temperatures(temp_sel)
+                    matrix = (r/255.0, 0.0, 0.0, 0.0,
+                        0.0, g/255.0, 0.0, 0.0,
+                        0.0, 0.0, b/255.0, 0.0)
+                    self.image_scaled = self.image.convert('RGB', matrix)
+                    log_debug(f"Applied color temperature of {temp_sel} K")
 
-                # Scale image
-                # TODO: Only if it has to be rescaled...
-                self.width = round(self.height*self.image.size[0]/self.image.size[1])
-                log_debug(f"Scaling image to {self.width}x{self.height}")
-                self.image_scaled = self.image_scaled.resize((self.width, self.height))
-                log_debug(f"Image resized to {self.width}x{self.height}")
+                    # Apply brightness correction
+                    enhancer = ImageEnhance.Brightness(self.image_scaled)
+                    log_debug(f"Brightness: {self.led_settings['brightness']}")
+                    self.image_scaled = enhancer.enhance(self.led_settings["brightness"])
+                    log_debug(f"Applied brightness of {self.led_settings['brightness']*100}%")
 
-                # Mirror image
-                if self.led_settings["mirror"]:
-                    self.image_scaled = ImageOps.mirror(self.image_scaled)
+                    # TODO: Crop image if required
 
-                # Save scaled image
-                self.image_scaled.save("image_scaled.png")
+                    # Scale image
+                    # TODO: Only if it has to be rescaled...
+                    self.width = round(self.height*self.image.size[0]/self.image.size[1])
+                    log_debug(f"Scaling image to {self.width}x{self.height}")
+                    self.image_scaled = self.image_scaled.resize((self.width, self.height))
+                    log_debug(f"Image resized to {self.width}x{self.height}")
 
-                # Calculate the hash of the scaled image
-                image_bytes = self.image_scaled.tobytes()
-                self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
-                log_debug(f"New image hash: {self.led_settings['image_hash']}")
-                log_info("Processed and saved new image")
-            elif command_data["command"] == "upload_image":
-                log_info("Uploading new image")
-                self.uploading_image = True
-                self.update_progress("processing", "Uploading image", 0.0)
+                    # Mirror image
+                    if self.led_settings["mirror"]:
+                        self.image_scaled = ImageOps.mirror(self.image_scaled)
 
-                width = self.image_scaled.size[0]
-                height = self.image_scaled.size[1]
-                if height != self.height:
-                    # This should hopefully never happen...
-                    log_error(f"Cannot upload image: size of scaled image does not match hardware configuration!")
-                    log_error(f"Scaled image height: {height}, hardware height: {self.height}")
-                    break
-                log_debug(f"Image size: {width}x{height}")
+                    # Save scaled image
+                    self.image_scaled.save("image_scaled.png")
 
-                # Split the image for the modules
-                module_data = []
-                for mid in range(self.module_cnt):
-                    cut_image = self.image_scaled.crop((0, mid*45, width, (mid+1)*45))
-                    # Swap the colors to the right order
-                    r,g,b = cut_image.split()
-                    cut_image = Image.merge("RGB", (g, r, b))
-                    # Flip the image, if required
-                    if self.router.module_port_addr_mirror[mid]["mirror"]:
-                        cut_image = cut_image.transpose(Image.FLIP_TOP_BOTTOM)
-                    # Transpose image (we want data along columns) and convert to numpy uint8 array
-                    cut_data = cut_image.transpose(Image.TRANSPOSE).tobytes()
-                    module_data.append(cut_data)
+                    # Calculate the hash of the scaled image
+                    image_bytes = self.image_scaled.tobytes()
+                    self.led_settings["image_hash"] = hashlib.sha256(image_bytes).hexdigest()
+                    log_debug(f"New image hash: {self.led_settings['image_hash']}")
+                    log_info("Processed and saved new image")
+                elif command_data["command"] == "upload_image":
+                    log_info("Uploading new image")
+                    self.uploading_image = True
+                    self.update_progress("processing", "Uploading image", 0.0)
 
-                # Send the image to the modules in packets of 256 bytes
-                # TODO: This can probably be optimized by sending data to all modules at once
-                # TODO: and then wait for the ACKs. But this would require some rework in the
-                # TODO: ACK management.
-                num_packets = math.ceil(len(module_data[mid])/256)
-                for mid in range(len(module_data)):
-                    # Start a new image for that module
-                    log_info(f"Sending image data to module {mid}")
-                    if not self.router.send_image_new(mid):
-                        log_error(f"Unable to send new image command to module {mid}")
-                    for bid in range(num_packets):
-                        # Cut the data, convert it to numpy and send it to the module
-                        data_cut = module_data[mid][bid*256:(bid+1)*256]
-                        data_cut = np.frombuffer(data_cut, dtype=np.uint8)
-                        if not self.router.send_image_append(mid, data_cut):
-                            log_error(f"Unable to send image data to module {mid}")
-                            break
-                        progress = (mid*num_packets + bid + 1)/(num_packets*len(module_data))
-                        log_debug(f"Uploading image... {progress*100:.0f} %")
-                        self.led_settings["progress_value"] = progress
-                        if not self.uploading_image:
-                            log_info("Cancelled upload")
-                            self.update_progress("noimage", "", 0.0)
-                            break
-                self.update_progress("ready", "", 0.0)
-                log_info("Upload done")
-
-                # Set the current image width as trigger count for the main AVR
-                self.avrctrl.set_trigger_count(width)
-            elif command_data["command"] == "set_speed":
-                # We want 5.5 mm per LED, the period needs to be in microseconds per column
-                period = int(5.5e-3/self.led_settings['speed']*1e6)
-                if period > 65565:
-                    period = 65565
-                self.avrctrl.set_period(period)
-                self.avrctrl.set_on_time(int(period/2))  # TODO: Maybe we want to choose a different duty cycle here
-                log_info(f"Set speed to {self.led_settings['speed']} m/s, {period} µs/column")
-            elif command_data["command"] == "set_repeat":
-                self.avrctrl.set_infinite_repeat(self.led_settings['repeat'])
-                log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
-            elif command_data["command"] == "set_pixel_mode":
-                for mid in range(len(module_data)):
-                    if not self.router.send_pixel_mode(mid, self.led_settings['pixel_mode']):
-                        log_error(f"Unable to send new pixel mode to module {mid}")
-                log_info(f"Sent pixel_mode value of {self.led_settings['pixel_mode']} to modules")
-            elif command_data["command"] == "trigger":
-                self.led_settings["progress_status"] = "playing"
-                self.led_settings["progress_value"] = 0.0
-                self.playing = True
-
-                # Wait the trigger delay, while updating the progress values
-                delay = self.led_settings['trigger_delay']
-                log_info(f"Got trigger command, will sleep {delay} s")
-                slept = 0.0
-                while slept < delay:
-                    time.sleep(0.05)
-                    slept += 0.05
-                    self.led_settings["progress_value"] = slept/delay
-                    if not self.playing:
-                        self.led_settings["progress_status"] = "ready"
+                    width = self.image_scaled.size[0]
+                    height = self.image_scaled.size[1]
+                    if height != self.height:
+                        # This should hopefully never happen...
+                        log_error(f"Cannot upload image: size of scaled image does not match hardware configuration!")
+                        log_error(f"Scaled image height: {height}, hardware height: {self.height}")
                         break
+                    log_debug(f"Image size: {width}x{height}")
 
-                # TODO: Send trigger to microcontroller on main board
-                # TODO: Find something how we can know the current state without estimating it.
-                # TODO: Probably the µC on the host board can tell us the current state using its serial wire.
-                self.led_settings["progress_value"] = 0.0
-                self.led_settings["progress_status"] = "playing"
-                for mid in range(len(module_data)):
-                    if not self.router.send_prep(mid):
-                        log_error(f"Unable to send prepare message to module {mid}")
-                self.avrctrl.start_trigger()
-                log_info("Trigger sent")
+                    # Split the image for the modules
+                    module_data = []
+                    for mid in range(self.module_cnt):
+                        cut_image = self.image_scaled.crop((0, mid*45, width, (mid+1)*45))
+                        # Swap the colors to the right order
+                        r,g,b = cut_image.split()
+                        cut_image = Image.merge("RGB", (g, r, b))
+                        # Flip the image, if required
+                        if self.router.module_port_addr_mirror[mid]["mirror"]:
+                            cut_image = cut_image.transpose(Image.FLIP_TOP_BOTTOM)
+                        # Transpose image (we want data along columns) and convert to numpy uint8 array
+                        cut_data = cut_image.transpose(Image.TRANSPOSE).tobytes()
+                        module_data.append(cut_data)
 
-                # TODO: This is just for debug purposes: Send trigger directly to modules with 1s delay between each trigger
-                """log_info(f"Will trigger {self.width} times")
-                self.led_settings["progress_value"] = 0.0
-                if not self.router.send_prep(0):
-                    log_error("Unable to send prepare message")
-                time.sleep(1)
-                for column in range(self.width):
-                    if not self.router.send_trig(0):
-                        log_error("Unable to send trigger message")
-                    log_info(f"Triggered")
+                    # Send the image to the modules in packets of 256 bytes
+                    # TODO: This can probably be optimized by sending data to all modules at once
+                    # TODO: and then wait for the ACKs. But this would require some rework in the
+                    # TODO: ACK management.
+                    num_packets = math.ceil(len(module_data[mid])/256)
+                    for mid in range(len(module_data)):
+                        # Start a new image for that module
+                        log_info(f"Sending image data to module {mid}")
+                        if not self.router.send_image_new(mid):
+                            log_error(f"Unable to send new image command to module {mid}")
+                        for bid in range(num_packets):
+                            # Cut the data, convert it to numpy and send it to the module
+                            data_cut = module_data[mid][bid*256:(bid+1)*256]
+                            data_cut = np.frombuffer(data_cut, dtype=np.uint8)
+                            if not self.router.send_image_append(mid, data_cut):
+                                log_error(f"Unable to send image data to module {mid}")
+                                break
+                            progress = (mid*num_packets + bid + 1)/(num_packets*len(module_data))
+                            log_debug(f"Uploading image... {progress*100:.0f} %")
+                            self.led_settings["progress_value"] = progress
+                            if not self.uploading_image:
+                                log_info("Cancelled upload")
+                                self.update_progress("noimage", "", 0.0)
+                                break
+                    self.update_progress("ready", "", 0.0)
+                    log_info("Upload done")
+
+                    # Set the current image width as trigger count for the main AVR
+                    self.avrctrl.set_trigger_count(width)
+                elif command_data["command"] == "set_speed":
+                    # We want 5.5 mm per LED, the period needs to be in microseconds per column
+                    period = int(5.5e-3/self.led_settings['speed']*1e6)
+                    if period > 65565:
+                        period = 65565
+                    self.avrctrl.set_period(period)
+                    self.avrctrl.set_on_time(int(period/2))  # TODO: Maybe we want to choose a different duty cycle here
+                    log_info(f"Set speed to {self.led_settings['speed']} m/s, {period} µs/column")
+                elif command_data["command"] == "set_repeat":
+                    self.avrctrl.set_infinite_repeat(self.led_settings['repeat'])
+                    log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
+                elif command_data["command"] == "set_pixel_mode":
+                    for mid in range(len(module_data)):
+                        if not self.router.send_pixel_mode(mid, self.led_settings['pixel_mode']):
+                            log_error(f"Unable to send new pixel mode to module {mid}")
+                    log_info(f"Sent pixel_mode value of {self.led_settings['pixel_mode']} to modules")
+                elif command_data["command"] == "trigger":
+                    self.led_settings["progress_status"] = "playing"
+                    self.led_settings["progress_value"] = 0.0
+                    self.playing = True
+
+                    # Wait the trigger delay, while updating the progress values
+                    delay = self.led_settings['trigger_delay']
+                    log_info(f"Got trigger command, will sleep {delay} s")
+                    slept = 0.0
+                    while slept < delay:
+                        time.sleep(0.05)
+                        slept += 0.05
+                        self.led_settings["progress_value"] = slept/delay
+                        if not self.playing:
+                            self.led_settings["progress_status"] = "ready"
+                            break
+
+                    # TODO: Send trigger to microcontroller on main board
+                    # TODO: Find something how we can know the current state without estimating it.
+                    # TODO: Probably the µC on the host board can tell us the current state using its serial wire.
+                    self.led_settings["progress_value"] = 0.0
+                    self.led_settings["progress_status"] = "playing"
+                    for mid in range(len(module_data)):
+                        if not self.router.send_prep(mid):
+                            log_error(f"Unable to send prepare message to module {mid}")
+                    self.avrctrl.start_trigger()
+                    log_info("Trigger sent")
+
+                    # TODO: This is just for debug purposes: Send trigger directly to modules with 1s delay between each trigger
+                    """log_info(f"Will trigger {self.width} times")
+                    self.led_settings["progress_value"] = 0.0
+                    if not self.router.send_prep(0):
+                        log_error("Unable to send prepare message")
                     time.sleep(1)
-                self.led_settings["progress_value"] = 0.0
-                self.led_settings["progress_status"] = "ready"
-                log_info(f"Playback done")"""
+                    for column in range(self.width):
+                        if not self.router.send_trig(0):
+                            log_error("Unable to send trigger message")
+                        log_info(f"Triggered")
+                        time.sleep(1)
+                    self.led_settings["progress_value"] = 0.0
+                    self.led_settings["progress_status"] = "ready"
+                    log_info(f"Playback done")"""
 
-                # Update the state
-                while self.playing is True:
-                    # TODO: Once playback is done, we need to tell the modules to turn off the LEDs
                     # Update the state
-                    timer_counter = self.avrctrl.get_timer_counter()
-                    self.led_settings["progress_value"] = timer_counter/self.image_scaled.size[0]
-                    if timer_counter == 0:  # TODO: This is not sufficient, if we are playing continously this might be 0 sometimes - we should have a flag for "done"
-                        break
-                log_info("Play done")
-                self.led_settings["progress_value"] = 0.0
-                self.led_settings["progress_status"] = "ready"
-                self.playing = False
-                self.avrctrl.stop_trigger() # Make sure the trigger is stopped, for example if the user requested the stop
-                self.router.send_reset_leds() # Turn off all LEDs
+                    while self.playing is True:
+                        # TODO: Once playback is done, we need to tell the modules to turn off the LEDs
+                        # Update the state
+                        timer_counter = self.avrctrl.get_timer_counter()
+                        self.led_settings["progress_value"] = timer_counter/self.image_scaled.size[0]
+                        if timer_counter == 0:  # TODO: This is not sufficient, if we are playing continously this might be 0 sometimes - we should have a flag for "done"
+                            break
+                    log_info("Play done")
+                    self.led_settings["progress_value"] = 0.0
+                    self.led_settings["progress_status"] = "ready"
+                    self.playing = False
+                    self.avrctrl.stop_trigger() # Make sure the trigger is stopped, for example if the user requested the stop
+                    self.router.send_reset_leds() # Turn off all LEDs
 
     def init_modules(self):
         self.command_queue.put({"command": "init_modules"})

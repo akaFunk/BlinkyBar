@@ -55,7 +55,7 @@ After a reboot, make sure you have the SPI1 interface at `/dev/spidev1.0` and th
 ### Dependencies
 You need to install a few things before you can start the BlinkyBar main application:
 ```sh
-$ sudo apt install python3-pip libopenjp2-7V python3-numpy
+$ sudo apt install python3-pip libopenjp2-7V python3-numpy python3-rpi.gpio
 $ pip3 install cherrypy pillow ujson pyserial
 ```
 
