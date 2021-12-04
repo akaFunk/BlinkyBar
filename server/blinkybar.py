@@ -465,7 +465,7 @@ class ModuleController(Thread):
                 self.avrctrl.set_trigger_count(width)
             elif command_data["command"] == "set_speed":
                 # We want 5.5 mm per LED, the period needs to be in microseconds per column
-                period = int(1/(self.led_settings['speed']*1000)*1e6)
+                period = int(5.5e-3/self.led_settings['speed']*1e6)
                 if period > 65565:
                     period = 65565
                 self.avrctrl.set_period(period)
