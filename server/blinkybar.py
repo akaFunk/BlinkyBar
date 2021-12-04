@@ -472,10 +472,9 @@ class ModuleController(Thread):
                 self.avrctrl.set_on_time(int(period/2))  # TODO: Maybe we want to choose a different duty cycle here
                 log_info(f"Set speed to {self.led_settings['speed']} m/s, {period} µs/column")
             elif command_data["command"] == "set_repeat":
-                # TODO: Send new repeat value to microcontroller
+                self.avrctrl.set_infinite_repeat(self.led_settings['repeat'])
                 log_info(f"Sent repeat value of {self.led_settings['repeat']} to modules")
             elif command_data["command"] == "set_pixel_mode":
-                # TODO: Send new pixel_mode value to modules
                 for mid in range(len(module_data)):
                     if not self.router.send_pixel_mode(mid, self.led_settings['pixel_mode']):
                         log_error(f"Unable to send new pixel mode to module {mid}")
