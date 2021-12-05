@@ -87,7 +87,6 @@ class PacketRouter:
         log_info("Initializing modules...")
         self.module_port_addr_mirror = []  # converts module_nr to port, address, and mirror flag
 
-        # Assign addresses to each module on each string until no one responds any more
         port_list = [self.ser_port_top, self.ser_port_bottom]
         port_name_list = ["top", "bottom"]
         module_cnt = [0, 0]
@@ -106,37 +105,29 @@ class PacketRouter:
             # Reset all module addresses to 0
             log_info(f"Resetting all module addresses on port {port_name}")
             self.send_addr_set(port, MESSAGE_ADDR_BROADCAST, 0)
-            
-            addr = 1  # First module address is 1, as 0 is used as default address after a reset
-            while True:
-                log_info(f"Searching for module at address {addr} on port {port_name}")
-                # Send the new address to the next module
+
+            # Send all modules their address - we support up to 20 modules
+            MAX_MODULE_CNT = 3  # TODO: This should be a configuration parameter
+            for addr in range(1, MAX_MODULE_CNT+1):
                 self.send_addr_set(port, 0, addr)
 
-                # Enable the return path of that new module
-                if not self.send_ret_enable(port, addr):
-                    # No answer from this module, break the addressing loop
-                    log_info(f"Got no answer, so there is no other module")
+            # Now enable the return path, starting from the last module until we get an answer
+            found_module = False
+            for addr in range(MAX_MODULE_CNT, 0, -1):
+                if self.send_ret_enable(port, addr):
+                    log_info(f"Got answer from module {addr}")
+                    found_module = True
                     break
+            if not found_module:
+                module_cnt[p] = 0
+            else:
+                module_cnt[p] = addr
 
-                # Otherwise add this module to the list
-                log_info(f"Found module with new address {addr} on port {port_name}")
+            # Add the modules to the list
+            for addr in range(1, module_cnt[p]+1):
                 self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
+            log_info(f"Found a total of {module_cnt[p]} modules on port {port_name}")
 
-                # And disable the return path of this module again
-                log_info(f"Disabling return of that module")
-                self.send_ret_disable(port, addr)
-
-                addr += 1
-            addr -= 1
-            log_info(f"Found a total of {addr} modules on port {port_name}")
-
-            # Now tell the last module of this string to switch on its return path
-            if not self.send_ret_enable(port, addr):
-                log_error(f"Unable to enable return path for module {addr} on port {port_name}")
-                # TODO: This is a critical error which should be reported to the user. We need a queue back to the ModuleController for this error messages
-                continue
-            module_cnt[p] = addr
         # TODO: Report the module_cnt back to ModuleController - we also need a queue here...
 
     # Returns the number of detected modules
