@@ -11,3 +11,4 @@
 
 void ws2812b_init();
 void ws2812b_send_column(uint8_t* data_ptr, uint8_t led_cnt);
+void ws2812b_trigger();

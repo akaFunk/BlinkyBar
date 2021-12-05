@@ -78,7 +78,7 @@ typedef struct
 void message_tx(message_t* msg)
 {
     uint8_t* msg_raw = (uint8_t*)msg;
-    for(uint8_t k = 0; k < MESSAGE_HEADER_SIZE + msg->len; k++)
+    for(uint16_t k = 0; k < MESSAGE_HEADER_SIZE + msg->len; k++)
         uart_putc(msg_raw[k]);
 }
 
@@ -131,6 +131,7 @@ int main()
     {
         // Wait for the magic word
         while(fifo_popc_block(&uart_in_fifo) != MESSAGE_MAGIC);
+        // TODO: while waiting, call flash_sm_tick()?
         msg.magic = MESSAGE_MAGIC;
 
         // Read the rest of the header, exclude magic word
@@ -147,12 +148,18 @@ int main()
             msg.data[k] = fifo_popc_block(&uart_in_fifo);
 
         // Got a complete message, interpret it
+        bool message_for_this_module = false;
         if(msg.dst == module_addr || msg.dst == MESSAGE_ADDR_BROADCAST)
+        {
+            // process_message may change the module address, so we have to remember
+            // if this message was for this module or not
+            message_for_this_module = true;
             process_message(&msg);
+        }
 
         // If this message is not for this module or is a broadcast message,
         // forward it to the next module
-        if(msg.dst == MESSAGE_ADDR_BROADCAST || msg.dst != module_addr)
+        if(!message_for_this_module || msg.dst == MESSAGE_ADDR_BROADCAST)
             message_tx(&msg);
     }
 }
