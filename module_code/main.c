@@ -130,8 +130,8 @@ int main()
     while(1)
     {
         // Wait for the magic word
-        while(fifo_popc_block(&uart_in_fifo) != MESSAGE_MAGIC);
-        // TODO: while waiting, call flash_sm_tick()?
+        while(fifo_popc_block(&uart_in_fifo) != MESSAGE_MAGIC)
+            flash_sm_tick();
         msg.magic = MESSAGE_MAGIC;
 
         // Read the rest of the header, exclude magic word
