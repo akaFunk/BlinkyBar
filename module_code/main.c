@@ -88,6 +88,9 @@ void display_status(uint8_t status);
 void debug_flash();
 void debug_flash_sm();
 
+#define MIN_VOLTAGE      6000   // minimum voltage (mV), below this value the module will turn itself off
+uint16_t get_voltage();
+
 static message_t msg;  // message buffer
 static uint8_t pixel_mode = 1;  // pixel mode enabled if true
 
@@ -99,6 +102,7 @@ int main()
     PWR_EN_PORT &= (1<<PWR_EN_PIN);  // Disable own power supply by default
     PWR_EN_DDR |= (1<<PWR_EN_PIN);
     LED_DDR |= (1<<LED_PIN);
+    led_on();
 
     // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
     _delay_ms(2000);
@@ -109,7 +113,12 @@ int main()
     flash_init();
     flash_sm_init();
     sei();
-    // TODO: Add ADC for battery monitoring
+
+    // Set up battery monitoring ADC
+    ADMUX = (1<<REFS0) | (1<<REFS1) | 7; // 1.1V internal reference, ADC7 source
+    ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);  // Enable, 1/128 prescaler
+    get_voltage(); // Dummy read
+    _delay_ms(10); // Wait a moment for the bandgap voltage to stabilize
 
     // Disable all LEDs
     display_status(0);
@@ -130,8 +139,20 @@ int main()
     while(1)
     {
         // Wait for the magic word
-        while(fifo_popc_block(&uart_in_fifo) != MESSAGE_MAGIC)
+        while(fifo_popc(&uart_in_fifo) != MESSAGE_MAGIC)
+        {
+            // Run flash state machine to free unused memory
             flash_sm_tick();
+
+            // Read voltage and shutdown the module, if it is too low
+            uint16_t voltage = get_voltage();
+            if(voltage < MIN_VOLTAGE)
+            {
+                PWR_EN_PORT &= ~(1<<PWR_EN_PIN);
+                // After cutting our own power, we do nothing any more to prevent any undefined states
+                while(1);
+            }
+        }
         msg.magic = MESSAGE_MAGIC;
 
         // Read the rest of the header, exclude magic word
@@ -367,4 +388,16 @@ void debug_flash()
     }
     flash_read_cont_stop();
     uart_putcc("Read done\r\n");
+}
+
+uint16_t get_voltage()
+{
+    ADCSRA |= (1<<ADSC);  // Start conversion
+    while((ADCSRA & (1<<ADIF)));  // Wait for completion
+    uint16_t adc_val = ADC;
+    ADCSRA |= (1<<ADIF); // Clear interrupt flag
+
+    // convert ADC value to voltage, reference is 1.1V, voltage divider 10/78
+    uint16_t voltage = (uint16_t)(adc_val*8.37);
+    return voltage;
 }
