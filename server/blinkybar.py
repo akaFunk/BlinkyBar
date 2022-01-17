@@ -123,9 +123,14 @@ class PacketRouter:
             else:
                 module_cnt[p] = addr
 
-            # Add the modules to the list
-            for addr in range(1, module_cnt[p]+1):
-                self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
+            # Add the modules to the list. For un-mirrored modules, we need to add the last module in
+            # the chain as the first one to the global list.
+            if not mirror[p]:
+                for addr in range(module_cnt[p], 0, -1):
+                    self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
+            else:
+                for addr in range(1, module_cnt[p]+1):
+                    self.module_port_addr_mirror.append({"port": port, "addr": addr, "mirror": mirror[p]})
             log_info(f"Found a total of {module_cnt[p]} modules on port {port_name}")
 
         # TODO: Report the module_cnt back to ModuleController - we also need a queue here...
