@@ -393,8 +393,8 @@ void debug_flash()
 uint16_t get_voltage()
 {
     ADCSRA |= (1<<ADSC);  // Start conversion
-    while((ADCSRA & (1<<ADIF)));  // Wait for completion
-    uint16_t adc_val = ADC;
+    while(ADCSRA & (1<<ADSC));  // Wait for completion
+    uint16_t adc_val = ADCW;
     ADCSRA |= (1<<ADIF); // Clear interrupt flag
 
     // convert ADC value to voltage, reference is 1.1V, voltage divider 10/78
