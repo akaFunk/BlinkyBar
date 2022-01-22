@@ -30,6 +30,13 @@
 #define led_off()                   LED_PORT &= ~(1<<LED_PIN)
 #define led_toggle()                LED_PORT ^= (1<<LED_PIN)
 
+#define TP_DDR                     DDRC
+#define TP_PORT                    PORTC
+#define TP_PIN                     1
+#define tp_on()                    TP_PORT |= (1<<TP_PIN)
+#define tp_off()                   TP_PORT &= ~(1<<TP_PIN)
+#define tp_toggle()                TP_PORT ^= (1<<TP_PIN)
+
 #define MESSAGE_MAGIC               0xab    // Magic word used to mark the beginning of a message
 
 #define MESSAGE_TYPE_ADDR_SET       0x00    // Set a new module address, len=1 (new address), no ACK
@@ -102,6 +109,7 @@ int main()
     PWR_EN_PORT &= (1<<PWR_EN_PIN);  // Disable own power supply by default
     PWR_EN_DDR |= (1<<PWR_EN_PIN);
     LED_DDR |= (1<<LED_PIN);
+    TP_DDR |= (1<<TP_PIN);
     led_on();
 
     // Before we do anything, we wait 2 seconds, then turn on the power supply for ourself
