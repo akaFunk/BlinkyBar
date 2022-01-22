@@ -49,9 +49,9 @@ void flash_sm_init()
 
 void flash_sm_tick()
 {
-    // If we are currently reading, stop it
+    // If we are currently reading, don't do anything
     if(reading)
-        flash_sm_read_image_stop();
+        return;
     
     // If we are currently erasing, check if that is done
     if(erasing && !flash_busy())
@@ -203,7 +203,12 @@ void flash_sm_read_image_data(uint8_t* data, uint8_t size)
     
     // Check for wraparound and restart read
     if(image_columns_read == image_length_columns)
-        flash_sm_read_image_start();
+    {
+        // Restart read
+        flash_read_cont_stop();
+        flash_read_cont_start(image_start);
+        image_columns_read = 0;
+    }
 
     // Read the data
     flash_read_cont_read(data, size);
