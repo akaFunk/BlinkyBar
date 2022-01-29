@@ -182,6 +182,12 @@ class PacketRouter:
         msg = Message(MESSAGE_TYPE_PREP)
         return self.send_message_module(module_nr, msg)
     
+    # Send a "done" message, which will cause the modules to stop the contineous read from
+    # the flash and continue normal operation, erasing the flash for example.
+    def send_done(self, module_nr: int):
+        msg = Message(MESSAGE_TYPE_DONE)
+        return self.send_message_module(module_nr, msg)
+
     # Send a trigger message a module
     # Note: This is only for debug purposes, the modules are normally triggered by 
     # a hardware line all together and with proper timing.
@@ -512,9 +518,7 @@ class ModuleController(Thread):
                             self.led_settings["progress_status"] = "ready"
                             break
 
-                    # TODO: Send trigger to microcontroller on main board
-                    # TODO: Find something how we can know the current state without estimating it.
-                    # TODO: Probably the µC on the host board can tell us the current state using its serial wire.
+                    # Send prepare messages to all modules and trigger the main AVR
                     self.led_settings["progress_value"] = 0.0
                     self.led_settings["progress_status"] = "playing"
                     for mid in range(len(module_data)):
@@ -523,29 +527,21 @@ class ModuleController(Thread):
                     self.avrctrl.start_trigger()
                     log_info("Trigger sent")
 
-                    # TODO: This is just for debug purposes: Send trigger directly to modules with 1s delay between each trigger
-                    """log_info(f"Will trigger {self.width} times")
-                    self.led_settings["progress_value"] = 0.0
-                    if not self.router.send_prep(0):
-                        log_error("Unable to send prepare message")
-                    time.sleep(1)
-                    for column in range(self.width):
-                        if not self.router.send_trig(0):
-                            log_error("Unable to send trigger message")
-                        log_info(f"Triggered")
-                        time.sleep(1)
-                    self.led_settings["progress_value"] = 0.0
-                    self.led_settings["progress_status"] = "ready"
-                    log_info(f"Playback done")"""
-
                     # Update the state
                     while self.playing is True:
-                        # TODO: Once playback is done, we need to tell the modules to turn off the LEDs
-                        # Update the state
                         timer_counter = self.avrctrl.get_timer_counter()
                         self.led_settings["progress_value"] = timer_counter/self.image_scaled.size[0]
                         if timer_counter == 0:  # TODO: This is not sufficient, if we are playing continously this might be 0 sometimes - we should have a flag for "done"
+                            log_info("Play timer finished")
                             break
+
+                    # Tell all modules that the playback is finished, so they can continue to do
+                    # background tasks like erasing the flash and also disable the LEDs in case they
+                    # are still on for some reason
+                    for mid in range(len(module_data)):
+                        if not self.router.send_done(mid):
+                            log_error(f"Unable to send done message to module {mid}")
+
                     log_info("Play done")
                     self.led_settings["progress_value"] = 0.0
                     self.led_settings["progress_status"] = "ready"

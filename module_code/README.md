@@ -70,5 +70,7 @@ The following message types are known:
 - **MESSAGE_TYPE_DEL**: Delete the module's flash, len=0. ACK is returned when flash is deleted. Note that the module will not forward other messages while deleting the flash. It is therefore advised to send this message either as a broadcast or to the last module in the chain at first.
 - **MESSAGE_TYPE_DATA**: Next data block for the module, len=1..256. The flash block size is 256 bytes and one column has 135 bytes per module.
 - **MESSAGE_TYPE_PREP**: All data transmitted to modules, signal for the modules to prepare for trigger, len=0. The module will load the first set of data into the RAM.
+- **MESSAGE_TYPE_TRIG**: Trigger a column - just for debug purposes, normal operation is though TRIGI signal interrupt.
+- **MESSAGE_TYPE_DONE**: Playback is done, normal operation can continue.
 - **MESSAGE_TYPE_ACK**: ACK last message (also used as pong), len=0.
 - **MESSAGE_TYPE_NACK**: NACK last message, len=0.

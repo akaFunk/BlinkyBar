@@ -48,6 +48,7 @@
 #define MESSAGE_TYPE_IMG_APP        0x41    // Next image data block, len=1..256, must be 256 for all messages except the last one for an image
 #define MESSAGE_TYPE_PREP           0x50    // All data transmitted to modules, prepare for trigger, len=0
 #define MESSAGE_TYPE_TRIG           0x51    // Trigger a column - just for debug purposes, normal operation though TRIGI signal interrupt
+#define MESSAGE_TYPE_DONE           0x52    // Playback is done, normal operation can continue
 #define MESSAGE_TYPE_PIXEL_MODE     0x60    // Set the trigger mode, len=1 (trigger_mode), response with ACK
 #define MESSAGE_TYPE_ACK            0xf0    // ACK last message (also used as pong), len=0
 #define MESSAGE_TYPE_NACK           0xf1    // NACK last message, len=0
@@ -247,6 +248,12 @@ void process_message(message_t* msg)
         // Send data to LEDs and load new data after that
         ws2812b_send_column(rgb_data, LED_COUNT);
         flash_sm_read_image_data(rgb_data, LED_COUNT*3);
+        break;
+    case MESSAGE_TYPE_DONE:
+        // Playback is done, disable read mode so we will continue erasing the flash
+        flash_sm_read_image_stop();
+        // Also make sure that all LEDs are turned off
+        display_status(0);
         break;
     }
 
