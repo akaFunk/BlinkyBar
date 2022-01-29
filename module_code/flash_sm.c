@@ -14,7 +14,7 @@ erased and the data is written.
 #include "uart.h"
 #include <stdbool.h>
 
-#define FLASH_PAGES         65536           // Number of pages (256 bytes) the flash provides
+#define FLASH_PAGES         8192            // Number of pages (256 bytes) the flash provides
 #define PAGES_PER_SECTOR    16              // Number of pages per sector
 
 // State of the state machine
@@ -32,16 +32,14 @@ void flash_sm_init()
     erasing = false;
     reading = false;
     image_start = 0;
+    erase_next = image_start;
     image_length_page = 0;
     image_length_columns = 0;
     image_extra_bytes = 0;
 
-    // Erase the first sector
-    flash_sector_erase(image_start);
-    
-    // Wait for the erase to actually finish, then set erase_next
-    flash_wait();
-    erase_next = PAGES_PER_SECTOR;
+    // Erase the first sector manually
+    flash_sector_erase(erase_next);
+    flash_sm_erase_wait();
 
     // Start the erase of the second sector
     flash_sm_erase_next();
@@ -57,7 +55,7 @@ void flash_sm_tick()
     if(erasing && !flash_busy())
     {
         erasing = false;
-        erase_next += PAGES_PER_SECTOR;  // The potential overflow is intended
+        erase_next = (erase_next + PAGES_PER_SECTOR)%FLASH_PAGES;
     }
     // If we are currently not erasing, start the next erase
     if(!erasing)
@@ -67,7 +65,14 @@ void flash_sm_tick()
 void flash_sm_erase_next()
 {
     // Check if everything is erased and cancel in that case
-    if(erase_next == image_start)
+    // We have to keep two sectors not-erased so we can determine
+    // if there is enough space for a write left, as erase_next
+    // may be equal to image_start if the image size is 0 and
+    // everything is erased.
+    // Also we have to round the current image_start down to get
+    // the actual sector start (in number of pages).
+    uint16_t image_start_floor = (image_start/PAGES_PER_SECTOR)*PAGES_PER_SECTOR;
+    if(erase_next == image_start_floor || (erase_next + PAGES_PER_SECTOR)%FLASH_PAGES == image_start_floor)
         return;
     flash_sector_erase(erase_next);
     erasing = true;
@@ -76,7 +81,7 @@ void flash_sm_erase_next()
 // Start a new image
 void flash_sm_image_new()
 {
-    image_start += image_length_page;  // The potential overflow is intended
+    image_start = (image_start + image_length_page)%FLASH_PAGES;
     image_length_page = 0;
     image_length_columns = 0;
     image_extra_bytes = 0;
@@ -86,7 +91,7 @@ void flash_sm_erase_wait()
 {
     flash_wait();
     erasing = false;
-    erase_next += PAGES_PER_SECTOR;  // The potential overflow is intended
+    erase_next = (erase_next + PAGES_PER_SECTOR)%FLASH_PAGES;
 }
 
 // Append a full page to the current image
@@ -103,7 +108,7 @@ void flash_sm_image_append(uint8_t* data, uint16_t size)
     // If there is not enough space, wait for the erase process to finish, otherwise
     // suspend it. If There is not enough space and there is currently no erase process
     // running, start a new one and wait for it to finish.
-    uint16_t page = image_start + image_length_page;
+    uint16_t page = (image_start + image_length_page)%FLASH_PAGES;
     bool enough_space = page != erase_next;
 
     if(!enough_space && erasing)
