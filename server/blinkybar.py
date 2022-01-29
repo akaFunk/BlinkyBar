@@ -331,7 +331,7 @@ class ModuleController(Thread):
             "success": True,
             "error_msg": "",
             "brightness": 1.0,
-            "speed": 2.0,
+            "speed": 1.0,
             "color_temperature": 6500,
             "trigger_delay": 1.0,
             "mirror": False,
@@ -350,6 +350,9 @@ class ModuleController(Thread):
 
         # Scale and upload the current image
         self.update_image()
+
+        # Send default configuration
+        self.set_speed(self.led_settings["speed"])
 
     # This is a separate thread doing all the time-intensive tasks, like scaling the image
     # or uploading it to the modules.
