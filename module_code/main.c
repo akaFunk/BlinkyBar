@@ -157,6 +157,7 @@ int main()
             uint16_t voltage = get_voltage();
             if(voltage < MIN_VOLTAGE)
             {
+                cli();
                 PWR_EN_PORT &= ~(1<<PWR_EN_PIN);
                 // After cutting our own power, we do nothing any more to prevent any undefined states
                 while(1);
