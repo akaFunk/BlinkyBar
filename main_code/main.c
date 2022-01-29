@@ -80,7 +80,7 @@ void timer_init()
 uint16_t get_voltage()
 {
     ADCSRA |= (1<<ADSC);  // Start conversion
-    while((ADCSRA & (1<<ADIF)));  // Wait for completion
+    while(ADCSRA & (1<<ADSC));  // Wait for completion
     uint16_t adc_val = ADC;
     ADCSRA |= (1<<ADIF); // Clear interrupt flag
 
