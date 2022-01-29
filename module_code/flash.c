@@ -62,9 +62,18 @@ uint8_t flash_status()
 
 void flash_reset()
 {
+    // Enable reset
+    flash_select(),
+    flash_write(0x66);
+    flash_deselect();
+
+    // Reset
     flash_select(),
     flash_write(0x99);
     flash_deselect();
+
+    // Wait for the reset to finish
+    _delay_us(100);
 }
 
 uint8_t flash_jedec_id()
@@ -138,7 +147,7 @@ void flash_write_page(uint16_t page, uint8_t* data)
     flash_deselect();
 }
 
-// Read a complete block from the flash, identified by the page number
+// Read a complete page from the flash, identified by the page number
 void flash_read_page(uint16_t page, uint8_t* data)
 {
 	uint16_t i;
