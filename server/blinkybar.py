@@ -533,10 +533,14 @@ class ModuleController(Thread):
                     # Update the state
                     while self.playing is True:
                         timer_counter = self.avrctrl.get_timer_counter()
-                        self.led_settings["progress_value"] = timer_counter/self.image_scaled.size[0]
+                        self.led_settings["progress_value"] = 1.0 - timer_counter/self.image_scaled.size[0]
                         if timer_counter == 0:  # TODO: This is not sufficient, if we are playing continously this might be 0 sometimes - we should have a flag for "done"
                             log_info("Play timer finished")
                             break
+
+                    # Turn off the trigger signal
+                    self.playing = False
+                    self.avrctrl.stop_trigger() # Make sure the trigger is stopped, for example if the user requested the stop
 
                     # Tell all modules that the playback is finished, so they can continue to do
                     # background tasks like erasing the flash and also disable the LEDs in case they
@@ -548,8 +552,6 @@ class ModuleController(Thread):
                     log_info("Play done")
                     self.led_settings["progress_value"] = 0.0
                     self.led_settings["progress_status"] = "ready"
-                    self.playing = False
-                    self.avrctrl.stop_trigger() # Make sure the trigger is stopped, for example if the user requested the stop
                     self.router.send_reset_leds() # Turn off all LEDs
 
     def init_modules(self):
