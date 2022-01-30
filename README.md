@@ -1,5 +1,5 @@
 # BlinkyBar
-The BlinkyBar is a modular LED light painting device based on the WS2812B programmable RGB LEDs. It features modules with a length of approximately 250mm, which can be attached to a master module of an arbitrary length. The master module holds a Raspberry Pi Zero W, which provides access to the device with a Wifi access point. A website running on the Raspi allows to upload an image. Once the trigger button on the master module is pressed, the image is played back one column after another. Combining this with a long time expose will paint the uploaded image into thin air.
+The BlinkyBar is a modular LED light painting device based on the WS2812B programmable RGB LEDs. It features modules with a length of approximately 250mm, which can be attached to a host module of an arbitrary length. The host module holds a Raspberry Pi Zero W, which provides access to the device with a Wifi access point. A website running on the Raspi allows to upload an image. Once the trigger button on the host module is pressed, the image is played back one column after another. Combining this with a long time expose will paint the uploaded image into thin air.
 
 We are currently working on the first release. Images made with an earlier version are shown below. This older version featured only 60 LEDs per meter, while the new one will have 180 LEDs per meter.
 
@@ -12,7 +12,18 @@ Examples of the old version:
 ![Example Image 1](images/blinkybar1_scaled.jpg)
 ![Example Image 1](images/blinkybar2_scaled.jpg)
 
+Images of the first prototype:
+![Example Image 1](images/prototype1_scaled.jpg)
+![Example Image 1](images/prototype2_scaled.jpg)
+![Example Image 1](images/prototype3_scaled.jpg)
+![Example Image 1](images/prototype4_scaled.jpg)
+
 ## Building BlinkyBar
+
+### Issues to be aware of
+BlinkyBar is still in development and there are currently a few issues, which are important to note if you want to build it. They will be addressed in the future:
+- The 1117 LDO is not working with the currently populated MLCC output capacitors. Their ESR is too low. You will hear an annoying high pitch tone and have a ~400 mVpp triangle on the output voltage. Either replace the output capacitors with Aluminium Electrolytic types, solder a 0.5 Ohm resistor in series with the capacitors, or use a different LDO (for example BL8071CLBTR33 or AP2114H-3.3TRG1). Currently we have tested only using the Aluminium Electrolytic caps which works fine.
+- The modules are not able to power down automatically if the host module powers down. Please make sure to remove the batteries, otherwise they will be empty after some time. However, the battery under-voltage protection should work for both the host and the modules, so your batteries are safe.
 
 ### Parts
 Additional part required for a BlinkyBar with 4 modules and the main unit, i.e., 10 module PCBs and a length of 2475 mm and 450 LEDs.
