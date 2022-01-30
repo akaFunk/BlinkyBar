@@ -60,6 +60,15 @@ uint8_t flash_status()
 	return status;
 }
 
+uint8_t flash_status2()
+{
+	flash_select();
+	flash_write(0x35);
+	uint8_t status = flash_read();
+	flash_deselect();
+	return status;
+}
+
 void flash_reset()
 {
     // Enable reset
@@ -190,11 +199,21 @@ void flash_suspend()
     flash_select();
     flash_write(0x75);
     flash_deselect();
+
+    // The suspend needs up to 20us to finish - we just block here
+    _delay_us(20);
 }
 
 void flash_resume()
 {
+    // Check if suspend bit is set
+    if(!(flash_status2() & FLASH_STATUS2_SUS))
+        return;
     flash_select();
     flash_write(0x7a);
     flash_deselect();
+
+    // It is not allowed to issue another suspend within the next 20us, so we block
+    // here 20us to make sure this will never happen
+    _delay_us(20);
 }

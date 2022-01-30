@@ -26,6 +26,7 @@
 #define FLASH_SS_PIN        2
 
 #define FLASH_STATUS1_BUSY  0x01
+#define FLASH_STATUS2_SUS   0x80
 
 
 void flash_init();
@@ -36,6 +37,7 @@ void flash_init();
 void flash_write(uint8_t data);
 uint8_t flash_read();
 uint8_t flash_status();
+uint8_t flash_status2();
 void flash_reset();
 uint8_t flash_jedec_id();
 uint8_t flash_busy();
