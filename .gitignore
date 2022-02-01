@@ -10,3 +10,6 @@ __pycache__
 *.s
 fp-*
 _autosave*
+*.kicad_prl
+*-backups
+
