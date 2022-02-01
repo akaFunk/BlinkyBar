@@ -77,7 +77,7 @@ class AvrCtrl:
 
     def get_shutdown(self) -> bool:
         ans = self._querry()
-        return bool(ans.shutdown)
+        return bool(ans.shutdown != 0)
 
     def get_timer_counter(self) -> int:
         ans = self._querry()

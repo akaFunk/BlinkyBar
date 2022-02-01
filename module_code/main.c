@@ -50,6 +50,7 @@
 #define MESSAGE_TYPE_TRIG           0x51    // Trigger a column - just for debug purposes, normal operation though TRIGI signal interrupt
 #define MESSAGE_TYPE_DONE           0x52    // Playback is done, normal operation can continue
 #define MESSAGE_TYPE_PIXEL_MODE     0x60    // Set the trigger mode, len=1 (trigger_mode), response with ACK
+#define MESSAGE_TYPE_SHUTDOWN       0xe0    // Instruction from the host to shutdown the modules
 #define MESSAGE_TYPE_ACK            0xf0    // ACK last message (also used as pong), len=0
 #define MESSAGE_TYPE_NACK           0xf1    // NACK last message, len=0
 
@@ -101,6 +102,7 @@ uint16_t get_voltage();
 
 static message_t msg;  // message buffer
 static uint8_t pixel_mode = 1;  // pixel mode enabled if true
+static bool shutdown = false;  // True if the host requested a shutdown
 
 int main()
 {
@@ -155,9 +157,10 @@ int main()
 
             // Read voltage and shutdown the module, if it is too low
             uint16_t voltage = get_voltage();
-            if(voltage < MIN_VOLTAGE)
+            if(voltage < MIN_VOLTAGE || shutdown)
             {
                 cli();
+                led_off();
                 PWR_EN_PORT &= ~(1<<PWR_EN_PIN);
                 // After cutting our own power, we do nothing any more to prevent any undefined states
                 while(1);
@@ -236,6 +239,8 @@ void process_message(message_t* msg)
         flash_sm_image_append(msg->data, msg->len);
         break;
     case MESSAGE_TYPE_PREP:
+        // Turn off the LED
+        led_off();
         // Put the flash in continuous read mode and read the first column
         flash_sm_read_image_start();
         flash_sm_read_image_data(rgb_data, LED_COUNT*3);
@@ -251,10 +256,15 @@ void process_message(message_t* msg)
         flash_sm_read_image_data(rgb_data, LED_COUNT*3);
         break;
     case MESSAGE_TYPE_DONE:
+        // Turn the LED on
+        led_on();
         // Playback is done, disable read mode so we will continue erasing the flash
         flash_sm_read_image_stop();
         // Also make sure that all LEDs are turned off
         display_status(0);
+        break;
+    case MESSAGE_TYPE_SHUTDOWN:
+        shutdown = true;
         break;
     }
 

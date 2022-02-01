@@ -21,6 +21,7 @@ import logging
 #logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s ", level=logging.DEBUG)
 #logging.info("test")
 
+from subprocess import call
 
 # Format cherrypy logging with ms output
 cherrypy._cplogging.LogManager.time = lambda self : "" # Hack that cherrypy will not add a date/time to the message
@@ -306,6 +307,13 @@ class PacketRouter:
         message = Message(MESSAGE_TYPE_IMG_APP, img_data)
         return self.send_message_module(module_nr, message)
 
+    # Send a shutdown instruction to all modules using two broadcast messages
+    # Using a broadcast message is required so a module will forward this message
+    # before shutting itself down. More messages would then not be possible.
+    def send_shutdown(self):
+        message = Message(MESSAGE_TYPE_SHUTDOWN, dst=MESSAGE_ADDR_BROADCAST)
+        self.send_message_port(self.ser_port_top, message, False)
+        self.send_message_port(self.ser_port_bottom, message, False)
 
 class ModuleController(Thread):
     def __init__(self, config, command_queue):
@@ -360,8 +368,18 @@ class ModuleController(Thread):
         command_queue_internal = Queue()
         last_trigger = True
         while True:
-            time.sleep(0.1)
-            # TODO: Check shutdown pin (maybe not here, this loop blocks until a new command is available)
+            time.sleep(0.01) # Reduce CPU load
+
+            # Check the shutdown event
+            if self.avrctrl.get_shutdown():
+                log_info("Shutting down...")
+                # Send shutdown command to all modules
+                self.router.send_shutdown()
+                # Shutdown the Pi
+                call("sudo shutdown -h now", shell=True)
+                # Exit the program, as there is nothing to to any more and the Pi will shut down now
+                exit(0)
+
             # Check if trigger button is pushed
             new_trigger = GPIO.input(0)
             if not new_trigger and last_trigger: # Detect falling edge of button trigger line

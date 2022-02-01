@@ -136,6 +136,8 @@ int main()
     answer.magic1 = 0x41;
     sei();
 
+    uint16_t shutdown_counter = 0;
+
     while(1)
     {
         // Atomically update the battery voltage and only if we are not selected at the moment
@@ -145,14 +147,25 @@ int main()
         {
             answer.voltage = voltage;
         }
-        if(voltage < MIN_VOLTAGE)
+        if(voltage < MIN_VOLTAGE || shutdown_counter > 2000)
         {
             // Request a shutdown of the Pi
             answer.shutdown = 1;
             pi_shtdn_high();
-            _delay_ms(10000);  // Wait 10 seconds for the Pi to shutdown
+            led_off();
+            // Wait 15 seconds before we actually turn on the power while flashing the LED
+            for(int i = 0; i < 150; i++)
+            {
+                _delay_ms(100);
+                led_toggle();
+            }
+            led_off();
             pwr_on_low();
         }
+        if(!master_on_val())
+            shutdown_counter++;
+        else
+            shutdown_counter = 0;
         _delay_ms(1);
     }
     return 0;
