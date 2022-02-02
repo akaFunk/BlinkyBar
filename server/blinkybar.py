@@ -827,5 +827,5 @@ if __name__ == '__main__':
             'tools.staticdir.dir': '',
         }
     }
-    cherrypy.config.update({'server.socket_host': '192.168.178.60'})
+    cherrypy.config.update({'server.socket_host': '0.0.0.0'})
     cherrypy.quickstart(WebServer(config), '/', conf)
