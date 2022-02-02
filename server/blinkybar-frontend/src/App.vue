@@ -2,7 +2,7 @@
   <div class="app">
     <div class="image-box">
       <div v-if="progress_status==='ready'">
-        <file-uploader upload-url="/set_image">
+        <file-uploader upload-url="set_image">
           <img :src="resultUrl + image_hash" :key="image_hash" alt="scaled image stored on the BlinkyBar"/>
         </file-uploader>
       </div>
@@ -77,9 +77,9 @@ export default {
   },
   data: function () {
     return {
-      resultUrl: "/get_image_scaled?fake_param=",
-      triggerCmd: "/trigger",
-      settingsUrl: "/settings",
+      resultUrl: "get_image_scaled?fake_param=",
+      triggerCmd: "trigger",
+      settingsUrl: "settings",
       speed: NaN,
       brightness: NaN,
       trigger_delay: NaN,
