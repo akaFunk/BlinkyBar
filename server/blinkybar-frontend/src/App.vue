@@ -16,7 +16,7 @@
         <p>{{ progress_msg }}...</p>
       </div>
     </div>
-    <slider-input v-if="!isNaN(speed)" icon="running" v-model="speed" :min="0.1" :max="10" :interval="0.1" unit="m/s"/>
+    <slider-input v-if="!isNaN(speed)" icon="running" v-model="speed" :min="0.1" :max="3" :interval="0.1" unit="m/s"/>
     <slider-input v-if="!isNaN(brightness)" icon="sun" v-model="brightness" :min="1" :max="100" :interval="1" unit="%"
                   :scaling-factor="100"/>
     <slider-input v-if="!isNaN(trigger_delay)" icon="stopwatch-20" v-model="trigger_delay" :min="0" :max="60"
