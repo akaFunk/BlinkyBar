@@ -1,0 +1,4 @@
+Reference, Quantity, Value, Footprint, Datasheet, MPN, Manufacturer
+J1 ,1,"DN","Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical","~","DS1023-2*3SF11","CONNFLY Elec"
+J2 ,1,"UP","Connector_PinSocket_2.54mm:PinSocket_2x03_P2.54mm_Vertical","~","DS1023-2*3SF11","CONNFLY Elec"
+J3 ,1,"UPDN","Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical","~","B-2100S08P-B110","Ckmtw(Shenzhen Cankemeng)"

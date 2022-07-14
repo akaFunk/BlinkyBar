@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Module_PCB)(type Legacy)(uri ${KIPRJMOD}/Module_PCB.lib)(options "")(descr ""))
+)

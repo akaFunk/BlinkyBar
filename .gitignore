@@ -7,3 +7,9 @@ __pycache__
 .idea/
 *.o
 *.elf
+*.s
+fp-*
+_autosave*
+*.kicad_prl
+*-backups
+
