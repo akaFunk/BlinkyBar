@@ -51,6 +51,21 @@ The first line enables SPI1 with one chip-select (GPIO18). SPI1.0 is used as the
 
 After a reboot, make sure you have the SPI1 interface at `/dev/spidev1.0` and the two serial interfaces at `/dev/ttySC0` and `/dev/ttySC1`.
 
+### Serial terminal
+As the Wifi will be used for the access point, it may be handy to use a serial terminal for initial communication. To enable the serial terminal, add the line
+```
+enable_uart=1
+```
+to `/boot/config.txt`. Also make sure you have the following parameters in `/boot/cmdline.txt`:
+```
+console=serial0,115200 console=tty1
+```
+Then connect a USB to serial converter (like FTDI FT232R) to the main module. The RX/TX signals are on the debug header and labeled `PI_TXD` and `PI_RXD`. Make sure to connect RX to TX and vice versa. The names on the BlinkyBar PCB refer to the Pi side.
+
+Then run a serial terminal software like HyperTerminal (Windows) or minicom (Linux) with 115200 baud:
+```
+minicom -D /dev/ttyUSB2 -b 115200
+```
 
 ### Dependencies
 You need to install a few things before you can start the BlinkyBar main application:
@@ -58,6 +73,7 @@ You need to install a few things before you can start the BlinkyBar main applica
 $ sudo apt install python3-pip libopenjp2-7V python3-numpy python3-rpi.gpio
 $ pip3 install cherrypy pillow ujson pyserial
 ```
+Make sure the install the stuff using pip3 with the user which will also run the blinkybar.py server.
 
 Note: numpy is not installed through pip, as we experienced an issue with libcblas.so.3. Raspberry Pi OS puts the symbols into libblas.so and numpy needs to be linked against this library, which is not the case for the current PyPi version.
 
