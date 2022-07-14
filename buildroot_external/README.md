@@ -24,7 +24,7 @@ Here is a step-by-step guide on how to set up a RaspiOS for the BlinkyBar. It is
 The system is a so-called headless-system. You don't have (need) a monitor or keyboard. To get access to the Pi there are several options. The easiest one is to use Wifi and SSH. We will first tell the Pi to connect to your local Wifi network and enable SSH. Later, we will reconfigure the Pi to provide an access point. This has to be done later, as we will need to download some stuff.
 
 Flash the Raspberry Pi OS image to an SD card. After that open the boot partition and create a file called `ssh`, which will tell the Pi to enable the ssh server upon first boot. Then create a second file called `wpa_supplicant.conf` with the following content:
-`
+```text
 country=US
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -32,7 +32,8 @@ update_config=1
 network={
     ssid="SSID"
     psk="PASSWORD"
-}`
+}
+```
 Replace `SSID` with your network name, keep the quotes. Also set the password. You may also want to change the country, which will influence what frequencies the Pi is allowed to use due to different regulatory rules in different countries.
 
 Plug the SD card into the Pi and power it on by pressing the power button for at least 2 seconds. Now open the configuration site of your local Wifi router and find out the IP address of the Pi, connect to it using ssh:
