@@ -67,3 +67,7 @@ Some MPN in the CSV/schematics are just some random ones, for example for pin he
 
 | Part | Description |Replacements |
 |---|---|---|
+
+# TODO/Further development
+- Make everything much simpler, especially the bus topology, mechanical design, and power design
+- Use smaller LEDs, for example SK6805-EC15, and increase LED density
